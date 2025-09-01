@@ -4,388 +4,418 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Workout Rest Timer</title>
-<link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
-<link rel="icon" href="resttimer-roundcap-dark.svg"  type="image/svg+xml" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⏱️%3C/text%3E%3C/svg%3E">
 <style>
-  :root{
+  :root {
     --bg: #0f1419;
     --card: #141a21;
     --text: #eaf0f6;
-    --muted:#9fb0c1;
-    --ring:#2e7cf7;
-    --ring-15:#ff8a22;
-    --accent:#2e7cf7;
-    --accent-press:#1f66d6;
-    --btn:#1a2230;
-    --btn-text:#eaf0f6;
-    --pill:#10161d;
-    --pill-border:#243040;
+    --muted: #9fb0c1;
+    --ring: #2e7cf7;
+    --ring-15: #ff8a22;
+    --accent: #2e7cf7;
+    --accent-press: #1f66d6;
+    --btn: #1a2230;
+    --btn-text: #eaf0f6;
+    --pill: #10161d;
+    --pill-border: #243040;
     --shadow: 0 4px 12px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.1);
     --warn-fill: rgba(255,138,34,.15);
   }
-  .light{
-    --bg:#f6f8fb;
-    --card:#ffffff;
-    --text:#0b1722;
-    --muted:#6b7c8d;
-    --ring:#1f6eff;
-    --ring-15:#ff7a1a;
-    --accent:#1f6eff;
-    --accent-press:#0d50cc;
-    --btn:#e6edf6;
-    --btn-text:#0b1722;
-    --pill:#e8effa;
-    --pill-border:#d1dbe7;
+  .light {
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --text: #0b1722;
+    --muted: #6b7c8d;
+    --ring: #1f6eff;
+    --ring-15: #ff7a1a;
+    --accent: #1f6eff;
+    --accent-press: #0d50cc;
+    --btn: #e6edf6;
+    --btn-text: #0b1722;
+    --pill: #e8effa;
+    --pill-border: #d1dbe7;
     --warn-fill: rgba(255,122,26,.15);
   }
-  .auto{
+  .auto {
     color-scheme: light dark;
   }
-  body{
-    margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-    background:var(--bg);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-    font-size:16px;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-    box-sizing:border-box;
-    overflow:hidden;
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
   }
-  .wrapper{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    width:100%;
-    max-width:400px;
-    gap:20px;
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    gap: 20px;
   }
-  .timer-card{
-    background:var(--card);
-    border-radius:24px;
-    box-shadow:var(--shadow);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:30px;
-    width:100%;
-    box-sizing:border-box;
+  .timer-card {
+    background: var(--card);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    width: 100%;
+    box-sizing: border-box;
   }
-  .time-display{
-    width:220px;
-    height:220px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:relative;
+  .time-display {
+    width: clamp(180px, 50vw, 220px);
+    height: clamp(180px, 50vw, 220px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
-  .time-circle{
-    width:100%;
-    height:100%;
-    border-radius:50%;
-    border:12px solid var(--pill-border);
-    box-sizing:border-box;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  .time-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 12px solid var(--pill-border);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
-  .time-progress{
-    position:absolute;
-    width:240px;
-    height:240px;
-    top:-10px;
-    left:-10px;
-    transform:rotate(-90deg);
+  .time-progress {
+    position: absolute;
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    top: -10px;
+    left: -10px;
+    transform: rotate(-90deg);
   }
-  .time-progress circle{
-    fill:transparent;
-    stroke-linecap:round;
-    transition:stroke-dashoffset .35s;
-    stroke-width:12;
-    transform:translate(10px, 10px);
-    stroke:var(--ring);
+  .time-progress circle {
+    fill: transparent;
+    stroke-linecap: round;
+    transition: stroke-dashoffset .35s;
+    stroke-width: 12;
+    stroke: var(--ring);
   }
-  .time-progress circle.warn{
-    stroke:var(--ring-15);
+  .time-progress circle.warn {
+    stroke: var(--ring-15);
   }
-  .time-digits{
-    font-size:3rem;
-    font-weight:700;
-    font-variant-numeric:tabular-nums;
+  .time-digits {
+    font-size: clamp(2.5rem, 8vw, 3rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
-  .time-label{
-    font-size:1rem;
-    font-weight:400;
-    margin-top:-5px;
-    color:var(--muted);
+  .time-label {
+    font-size: 1rem;
+    font-weight: 400;
+    margin-top: -5px;
+    color: var(--muted);
   }
-  .controls{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    width:100%;
-    margin-top:20px;
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
   }
-  .controls button{
-    width:60px;
-    height:60px;
-    background:var(--btn);
-    border:none;
-    border-radius:50%;
-    color:var(--btn-text);
-    font-size:24px;
-    cursor:pointer;
-    transition:transform .2s ease-in-out, background .2s ease-in-out;
-    box-shadow:var(--shadow);
+  .controls button {
+    width: 60px;
+    height: 60px;
+    background: var(--btn);
+    border: none;
+    border-radius: 50%;
+    color: var(--btn-text);
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform .2s ease-in-out, background .2s ease-in-out;
+    box-shadow: var(--shadow);
   }
-  .controls button:hover{
-    transform:scale(1.05);
+  .controls button:hover {
+    transform: scale(1.05);
   }
-  .controls button:active{
-    transform:scale(.95);
+  .controls button:active {
+    transform: scale(.95);
   }
-  .main-control{
-    flex-grow:1;
-    height:60px;
-    border-radius:30px;
-    background:var(--accent);
-    color:#fff;
-    font-size:18px;
-    font-weight:700;
-    text-shadow:0 1px 1px rgba(0,0,0,.15);
-    padding:0 20px;
-    transition:background .2s ease-in-out;
+  .main-control {
+    flex-grow: 1;
+    height: 60px;
+    border-radius: 30px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    text-shadow: 0 1px 1px rgba(0,0,0,.15);
+    padding: 0 20px;
+    transition: background .2s ease-in-out;
   }
-  .main-control:hover{
-    background:var(--accent-press);
+  .main-control:hover {
+    background: var(--accent-press);
   }
-  .log{
-    display:flex;
-    flex-direction:column;
-    width:100%;
-    margin-top:20px;
-    gap:10px;
+  .log {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 20px;
+    gap: 10px;
   }
-  .log-item{
-    background:var(--pill);
-    border:1px solid var(--pill-border);
-    border-radius:16px;
-    padding:10px 20px;
-    font-size:.9rem;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
+  .log-item {
+    background: var(--pill);
+    border: 1px solid var(--pill-border);
+    border-radius: 16px;
+    padding: 10px 20px;
+    font-size: .9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
   }
-  .log-item-content{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex-grow:1;
+  .log-item-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-grow: 1;
   }
-  .log-icon{
-    width:16px;
-    height:16px;
-    border-radius:50%;
-    background:var(--accent);
+  .log-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
   }
-  .log-item.complete .log-icon{
-    background:var(--ring);
+  .log-item.complete .log-icon {
+    background: var(--ring);
   }
-  .log-item.skipped .log-icon{
-    background:var(--ring-15);
+  .log-item.skipped .log-icon {
+    background: var(--ring-15);
   }
-  .log-item-content span{
-    font-weight:700;
+  .log-item-content span {
+    font-weight: 700;
   }
-  .log-buttons{
-    display:flex;
-    gap:5px;
+  .log-buttons {
+    display: flex;
+    gap: 5px;
   }
-  .log-buttons button{
-    background:transparent;
-    border:none;
-    color:var(--muted);
-    font-size:18px;
-    cursor:pointer;
-    transition:color .2s;
+  .log-buttons button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color .2s;
   }
-  .log-buttons button:hover{
-    color:var(--text);
+  .log-buttons button:hover {
+    color: var(--text);
   }
-  .pills{
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:10px;
-    width:100%;
-    margin-top:20px;
+  .pills {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin-top: 20px;
   }
-  .pills button{
-    padding:8px 16px;
-    border-radius:20px;
-    border:1px solid var(--pill-border);
-    background:var(--pill);
-    color:var(--text);
-    cursor:pointer;
-    transition:background .2s, border-color .2s;
+  .pills button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill);
+    color: var(--text);
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
   }
-  .pills button.selected{
-    background:var(--accent);
-    border-color:var(--accent);
-    color:#fff;
+  .pills button.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
   }
-  .pills button:hover:not(.selected){
-    background:var(--pill-border);
+  .pills button:hover:not(.selected) {
+    background: var(--pill-border);
   }
-  .settings-icon{
-    width:24px;
-    height:24px;
-    background:none;
-    border:none;
-    cursor:pointer;
-    color:var(--muted);
-    transition:color .2s;
+  .settings-icon {
+    width: 24px;
+    height: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color .2s;
   }
-  .settings-icon:hover{
-    color:var(--text);
+  .settings-icon:hover {
+    color: var(--text);
   }
-  .modal{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,.5);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    visibility:hidden;
-    transition:opacity .3s, visibility .3s;
-    z-index:1000;
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s, visibility .3s;
+    z-index: 1000;
   }
-  .modal.active{
-    opacity:1;
-    visibility:visible;
+  .modal.active {
+    opacity: 1;
+    visibility: visible;
   }
-  .modal-content{
-    background:var(--card);
-    padding:20px;
-    border-radius:24px;
-    box-shadow:var(--shadow);
-    max-width:350px;
-    width:90%;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-    position:relative;
+  .modal-content {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    max-width: 350px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
   }
-  .modal-close{
-    position:absolute;
-    top:10px;
-    right:10px;
-    background:none;
-    border:none;
-    font-size:24px;
-    color:var(--muted);
-    cursor:pointer;
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--muted);
+    cursor: pointer;
   }
-  .modal-header{
-    font-size:1.2rem;
-    font-weight:700;
-    margin-bottom:10px;
+  .modal-header {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
   }
-  .modal-list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+  .modal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
-  .modal-list-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:8px 12px;
-    background:var(--pill);
-    border-radius:12px;
-    border:1px solid var(--pill-border);
+  .modal-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--pill);
+    border-radius: 12px;
+    border: 1px solid var(--pill-border);
   }
-  .modal-list-item button{
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-size:1.5rem;
-    line-height:1;
-    cursor:pointer;
+  .modal-list-item button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
   }
-  .modal-actions{
-    display:flex;
-    gap:10px;
+  .modal-actions {
+    display: flex;
+    gap: 10px;
   }
-  .modal-actions button{
-    flex-grow:1;
-    height:40px;
-    border-radius:20px;
-    border:none;
-    background:var(--accent);
-    color:#fff;
-    cursor:pointer;
+  .modal-actions button {
+    flex-grow: 1;
+    height: 40px;
+    border-radius: 20px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
   }
-  .modal-actions button.secondary{
-    background:var(--pill-border);
-    color:var(--text);
+  .modal-actions button.secondary {
+    background: var(--pill-border);
+    color: var(--text);
   }
-  .form-group{
-    display:flex;
-    flex-direction:column;
-    gap:5px;
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
   }
-  .form-group label{
-    font-size:.9rem;
-    color:var(--muted);
+  .form-group label {
+    font-size: .9rem;
+    color: var(--muted);
   }
-  .form-group input{
-    background:var(--pill);
-    border:1px solid var(--pill-border);
-    border-radius:12px;
-    padding:10px;
-    color:var(--text);
+  .form-group input {
+    background: var(--pill);
+    border: 1px solid var(--pill-border);
+    border-radius: 12px;
+    padding: 10px;
+    color: var(--text);
   }
-  .btn-group{
-    display:flex;
-    gap:10px;
+  .btn-group {
+    display: flex;
+    gap: 10px;
   }
-  .btn-group button{
-    flex-grow:1;
-    padding:8px 16px;
-    border-radius:20px;
-    border:1px solid var(--pill-border);
-    background:var(--pill);
-    color:var(--text);
-    cursor:pointer;
+  .btn-group button {
+    flex-grow: 1;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--pill-border);
+    background: var(--pill);
+    color: var(--text);
+    cursor: pointer;
   }
-  .btn-group button.selected{
-    background:var(--accent);
-    border-color:var(--accent);
-    color:#fff;
+  .btn-group button.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
   }
-  @media(max-width:480px){
-    .timer-card{padding:20px;}
-    .time-digits{font-size:2.5rem;}
-    .time-display{width:180px; height:180px;}
-    .time-progress{width:200px; height:200px; top:-10px; left:-10px;}
-    .controls button{width:50px; height:50px;}
-    .main-control{height:50px;}
-    .pills{gap:8px;}
-    .pills button{padding:6px 12px;}
-    .modal-content{width:95%;}
+  .enable-notifications-btn {
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    background: var(--ring);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  @media(max-width: 480px) {
+    body {
+      padding: 10px;
+    }
+    .timer-card {
+      padding: 20px;
+    }
+    .time-digits {
+      font-size: clamp(2rem, 8vw, 3rem);
+    }
+    .time-display {
+      width: clamp(160px, 50vw, 200px);
+      height: clamp(160px, 50vw, 200px);
+    }
+    .controls button {
+      width: 50px;
+      height: 50px;
+    }
+    .main-control {
+      height: 50px;
+    }
+    .pills {
+      gap: 8px;
+    }
+    .pills button {
+      padding: 6px 12px;
+    }
+    .modal-content {
+      width: 95%;
+    }
   }
 </style>
 </head>
@@ -408,12 +438,12 @@
     <div class="time-display">
       <div class="time-circle">
         <span id="timeDigits" class="time-digits">00:00</span>
+        <span id="countdownLabel" class="time-label">Set 1 of 1</span>
       </div>
       <svg id="timeProgress" class="time-progress" viewBox="0 0 240 240">
-        <circle cx="110" cy="110" r="100"/>
+        <circle cx="120" cy="120" r="110"/>
       </svg>
     </div>
-    <div id="countdownLabel" class="time-label"></div>
   </div>
 
   <div class="controls">
@@ -423,9 +453,7 @@
   </div>
 
   <div class="pills" id="pills"></div>
-
   <div class="log" id="log"></div>
-
 </div>
 
 <!-- Modals -->
@@ -436,7 +464,6 @@
     <div id="presetList" class="modal-list"></div>
     <div class="modal-actions">
       <button id="addPresetBtn">Add Current</button>
-      <button id="editPresetsBtn" class="secondary">Edit</button>
     </div>
   </div>
 </div>
@@ -453,19 +480,38 @@
         <button id="autoMode">Auto</button>
       </div>
     </div>
+    <button id="enableNotificationsBtn" class="enable-notifications-btn">Enable Notifications</button>
     <div class="modal-actions">
       <button id="clearLogBtn" class="secondary">Clear Log</button>
     </div>
   </div>
 </div>
 
-<div id="messageBox" class="modal">
-    <div class="modal-content">
-        <div id="messageText" class="modal-header"></div>
-        <div class="modal-actions">
-            <button class="close-btn">OK</button>
-        </div>
+<div id="addPresetModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Add New Preset</div>
+    <div class="form-group">
+      <label for="presetSeconds">Rest Time (seconds)</label>
+      <input type="number" id="presetSeconds" value="60" min="1" step="1">
     </div>
+    <div class="form-group">
+      <label for="presetSets">Number of Sets</label>
+      <input type="number" id="presetSets" value="1" min="1" step="1">
+    </div>
+    <div class="modal-actions">
+      <button id="savePresetBtn">Save Preset</button>
+      <button id="cancelPresetBtn" class="secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="messageBox" class="modal">
+  <div class="modal-content">
+    <div id="messageText" class="modal-header"></div>
+    <div class="modal-actions">
+      <button class="close-btn">OK</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -549,7 +595,7 @@ const state = {
   isRunning: false,
   setsCompleted: 0,
   log: store.get('log', []),
-  workoutLetterIndex: store.get('workoutLetterIndex', 0)
+  notificationPermission: Notification.permission
 };
 
 const defaultPresets = [
@@ -591,6 +637,7 @@ const startBtn = $('#startBtn');
 const presetsBtn = $('#presetsBtn');
 const settingsBtn = $('#settingsBtn');
 const presetsModal = $('#presetsModal');
+const addPresetModal = $('#addPresetModal');
 const settingsModal = $('#settingsModal');
 const presetList = $('#presetList');
 const logEl = $('#log');
@@ -601,6 +648,12 @@ const messageText = $('#messageText');
 const minusBtn = $('#minusBtn');
 const plusBtn = $('#plusBtn');
 const clearLogBtn = $('#clearLogBtn');
+const enableNotificationsBtn = $('#enableNotificationsBtn');
+const addPresetBtn = $('#addPresetBtn');
+const savePresetBtn = $('#savePresetBtn');
+const cancelPresetBtn = $('#cancelPresetBtn');
+const presetSecondsInput = $('#presetSeconds');
+const presetSetsInput = $('#presetSets');
 
 // Web Worker setup
 const workerBlob = new Blob([workerScript], { type: 'application/javascript' });
@@ -622,7 +675,9 @@ timerWorker.onmessage = (e) => {
     updateTimerDisplay();
     playAlarm();
     addLogEntry('complete');
-    showNotification();
+    if (state.notificationPermission === 'granted') {
+        showNotification();
+    }
   }
 };
 
@@ -644,24 +699,6 @@ function formatTime(ms) {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
-function updateTimerDisplay() {
-  const totalSeconds = presets[presetIndex].sets * presets[presetIndex].seconds;
-  const elapsedSeconds = totalSeconds - Math.floor(state.remaining / 1000);
-  const circumference = 2 * Math.PI * 100; // circle radius is 100
-  const offset = circumference - (elapsedSeconds / totalSeconds) * circumference;
-
-  timeDigits.textContent = formatTime(state.remaining);
-  countdownLabel.textContent = `Set ${state.setsCompleted + 1} of ${presets[presetIndex].sets}`;
-  timeProgress.style.strokeDasharray = circumference;
-  timeProgress.style.strokeDashoffset = offset;
-
-  if (state.remaining < 15000) {
-    timeProgress.classList.add('warn');
-  } else {
-    timeProgress.classList.remove('warn');
-  }
 }
 
 function renderPresets() {
@@ -696,7 +733,7 @@ function selectPreset(index) {
 
 function resetTimer() {
   timerWorker.postMessage({ type: 'STOP' });
-  state.remaining = presets[presetIndex].sets * presets[presetIndex].seconds * 1000;
+  state.remaining = presets[presetIndex].seconds * 1000;
   state.setsCompleted = 0;
   startBtn.textContent = 'Start';
   startBtn.disabled = false;
@@ -705,7 +742,7 @@ function resetTimer() {
 
 function addLogEntry(status) {
   const newEntry = {
-    seconds: presets[presetIndex].sets * presets[presetIndex].seconds,
+    seconds: presets[presetIndex].seconds,
     totalSets: presets[presetIndex].sets,
     set: state.setsCompleted + 1,
     status: status
@@ -728,21 +765,6 @@ function toggleStart() {
     startBtn.textContent = 'Resume';
     releaseWakeLock();
   }
-}
-
-function next() {
-  if (!state.isRunning) {
-    if (state.setsCompleted < presets[presetIndex].sets) {
-      addLogEntry('skipped');
-      state.setsCompleted++;
-      state.remaining = presets[presetIndex].seconds * 1000;
-      updateTimerDisplay();
-    }
-  }
-}
-
-function undo() {
-  // Logic to undo last log entry
 }
 
 function nudger(amount) {
@@ -784,20 +806,9 @@ document.addEventListener('visibilitychange', () => {
 
 // Notifications
 function showNotification() {
-  if (!("Notification" in window)) {
-    console.log("This browser does not support desktop notification");
-  } else if (Notification.permission === "granted") {
-    new Notification("Workout Timer", {
-      body: "Your rest is over! Time to start your next set.",
-      icon: "resttimer-roundcap-dark.svg"
-    });
-  } else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then(permission => {
-      if (permission === "granted") {
-        showNotification(); // Retry notification
-      }
-    });
-  }
+  new Notification("Workout Timer", {
+    body: "Your rest is over! Time to start your next set."
+  });
 }
 
 // Event Listeners
@@ -819,19 +830,26 @@ presetsBtn.addEventListener('click', () => {
   openModal(presetsModal);
 });
 
-$('#addPresetBtn').addEventListener('click', () => {
-  const timeInput = prompt("Enter seconds for new preset:");
-  const setsInput = prompt("Enter number of sets:");
-  const seconds = parseInt(timeInput, 10);
-  const sets = parseInt(setsInput, 10);
+addPresetBtn.addEventListener('click', () => {
+  openModal(addPresetModal);
+});
+
+savePresetBtn.addEventListener('click', () => {
+  const seconds = parseInt(presetSecondsInput.value, 10);
+  const sets = parseInt(presetSetsInput.value, 10);
   if (!isNaN(seconds) && seconds > 0 && !isNaN(sets) && sets > 0) {
     presets.push({ seconds, sets });
     store.set('presets', presets);
     renderPresets();
     showMessageBox("Preset added successfully!");
+    closeModal(addPresetModal);
   } else {
-    showMessageBox("Invalid input. Please enter a positive number for both fields.");
+    showMessageBox("Invalid input. Please enter positive numbers for both fields.");
   }
+});
+
+cancelPresetBtn.addEventListener('click', () => {
+  closeModal(addPresetModal);
 });
 
 presetList.addEventListener('click', (e) => {
@@ -851,13 +869,25 @@ settingsBtn.addEventListener('click', () => {
 $('#lightMode').addEventListener('click', () => applyAppearance('light'));
 $('#darkMode').addEventListener('click', () => applyAppearance('dark'));
 $('#autoMode').addEventListener('click', () => applyAppearance('auto'));
+enableNotificationsBtn.addEventListener('click', async () => {
+  if (!("Notification" in window)) {
+    showMessageBox("This browser does not support desktop notifications.");
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  state.notificationPermission = permission;
+  if (permission === 'granted') {
+    showMessageBox("Notifications are now enabled! Please ensure your phone is not on silent/mute to hear the alarm sound.");
+  } else {
+    showMessageBox("Notifications were denied. You can enable them in your browser settings if you change your mind.");
+  }
+});
 
 function applyAppearance(mode) {
   document.body.className = mode;
   store.set('appearance', mode);
 }
 applyAppearance(store.get('appearance', 'auto'));
-
 
 // Universal close button for modals
 $$('.close-btn').forEach(btn => {
@@ -878,7 +908,7 @@ clearLogBtn.addEventListener('click', () => {
 // Initial render
 selectPreset(presetIndex);
 renderLog();
-
+updateTimerDisplay();
 </script>
 
 </body>
