@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .ring { fill: none; stroke-linecap: round; stroke-width: 64px; }
+    </style>
+  </defs>
+  <g transform="translate(256.0,256.0) rotate(-90)">
+    <!-- Background ring -->
+    <circle class="ring" r="200" stroke="rgba(255,255,255,0.28)" />
+    <!-- Blue arc (dasharray + offset to position gap) -->
+    <circle class="ring" r="200" stroke="#1f6eff"
+            stroke-dasharray="1089.0855 167.5516"
+            stroke-dashoffset="31.4159" />
+  </g>
+</svg>
