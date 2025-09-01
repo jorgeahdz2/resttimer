@@ -199,42 +199,29 @@
     cursor:pointer;
     transition:transform 0.1s;
     white-space:nowrap;
-    flex: 1;
-    min-width: 0;
+    flex-shrink: 0;
   }
-  .btn:active{ transform:scale(0.96); }
-  .btn.hidden{ display:none; }
   .btn-primary{
     background:var(--accent);
     color:white;
     text-align:center;
-  }
-  .btn-primary.orange{
-    background:var(--ring-15);
+    flex-grow: 1; /* Main button grows to fill space */
   }
   .btn-secondary{
     background:var(--btn);
     color:var(--btn-text);
   }
-  .btn-circle{
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:24px;
-    font-weight:300;
-    flex: unset;
-    padding: 0;
-    min-width: unset;
+  .btn:active{ transform:scale(0.96); }
+  .btn.hidden{ display:none; }
+  .btn-nudge{
+    width: 84px; /* Fixed width for nudge buttons to prevent overspill */
   }
   .row{
     display:flex;
     gap:12px;
-    flex-wrap: wrap; /* Changed to allow wrapping */
     justify-content:center;
     align-items:center;
+    flex-wrap: wrap;
   }
   .pills{
     display:flex;
@@ -278,6 +265,8 @@
     transition:transform 0.1s, border-color 0.2s;
     cursor:pointer;
     white-space:nowrap;
+    flex: 1 1 0%;
+    min-width: 0;
   }
   .preset-btn:active{ transform:scale(0.96); }
   .preset-btn.active{
@@ -453,9 +442,9 @@
   </div>
   
   <div class="controls">
-    <button class="btn btn-secondary" id="minusBtn">-</button>
+    <button class="btn btn-secondary btn-nudge" id="minusBtn">-</button>
     <button class="btn btn-primary" id="startBtn">Start</button>
-    <button class="btn btn-secondary" id="plusBtn">+</button>
+    <button class="btn btn-secondary btn-nudge" id="plusBtn">+</button>
   </div>
   <div class="controls" id="secondaryControls">
     <button class="btn btn-secondary hidden" id="undoBtn">Undo</button>
@@ -770,7 +759,7 @@
     playEnd();
     digits.classList.remove('pulse');
     if(state.setIndex < state.totalSets-1){
-      state.setIndex = Math.min(state.totalSets-1, state.setIndex + 1);
+      state.setIndex++;
       updateSetPills();
       resetTimer(true);
       setTimeout(()=>{ state.completing=false; }, 200);
@@ -936,7 +925,7 @@
         <div class="modal-list-item">
           <span>${minsSec(p.seconds)} ×${p.sets}</span>
           <button class="delete-btn" data-index="${i}">&times;</button>
-        </div>
+      </div>
       `).join('');
     }
   });
@@ -982,7 +971,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
   });
 }
-
 // Keep screen awake during use (iOS 16+ supports Screen Wake Lock)
 let screenWakeLock = null;
 async function requestWakeLock() {
