@@ -120,6 +120,7 @@
     letter-spacing:.3px;
     cursor:pointer; user-select:none;
     transition: transform .03s ease, background .15s ease, border-color .15s ease;
+    white-space: nowrap;
   }
   .btn:active{transform: scale(0.98);}
   .btn-primary{
@@ -381,9 +382,10 @@
   }
 
   @media (max-width: 560px){
-    .row{gap:10px}
+    .row{gap:10px; flex-wrap:wrap}
     .btn{padding:11px 16px}
     .btn-subtle{padding:10px 16px}
+    .btn-primary{min-width:0}
     .footer-links{
       flex-wrap: wrap;
       justify-content: space-between;
@@ -833,11 +835,13 @@
     const key = 'log-'+todaysKey();
     store.set(key, items);
   }
-  function renderLog(){
-    const items = loadLog();
-    if(!items.length){ logEl.innerHTML='No sets yet'; return; }
-    logEl.innerHTML = items.map(i=>`<div class="log-entry">Workout ${i.letter}: ${minsSec(presets.find(p=>p.seconds===state.seconds && p.sets===state.totalSets)?.seconds || state.seconds)} ×${state.totalSets} — ${i.time}</div>`).join('');
-  }
+  function renderLog(){
+    const items = loadLog();
+    if(!items.length){ logEl.innerHTML='No sets yet'; return; }
+    logEl.innerHTML = items.map(i=>
+      `<div class="log-entry">Workout ${i.letter}: ${minsSec(i.seconds)} ×${i.sets} — ${i.time}</div>`
+    ).join('');
+  }
   function logWorkout(){
     const items = loadLog();
     const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
