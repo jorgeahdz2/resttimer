@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<!-- Added meta tags to prevent caching -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Workout Rest Timer</title>
 <link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
 <link rel="icon" href="resttimer-roundcap-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
@@ -40,7 +44,7 @@
     --warn-fill: rgba(255,122,26,.15);
   }
   @media (prefers-color-scheme: light){
-    body.auto{
+    :root.auto{
       --bg:#f6f8fb;
       --card:#ffffff;
       --text:#0b1722;
@@ -108,7 +112,8 @@
   .status strong.orange{
     color: var(--ring-15);
   }
-  .row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:center}
+  /* BUG FIX 1: Responsive main controls row */
+  .row{display:flex; gap:12px; flex-wrap:nowrap; justify-content:center; align-items:center; width: 100%;}
   .btn{
     background:var(--btn);
     color:var(--btn-text);
@@ -120,13 +125,19 @@
     letter-spacing:.3px;
     cursor:pointer; user-select:none;
     transition: transform .03s ease, background .15s ease, border-color .15s ease;
-    flex-shrink: 1;
+    white-space: nowrap;
   }
   .btn:active{transform: scale(0.98);}
   .btn-primary{
     background:var(--accent); color:white;
     padding:14px 18px; font-size:16px;
-    flex: 1; text-align: center;
+    text-align: center;
+    /* Allow button to grow and shrink */
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 100px; /* Smaller min-width for small screens */
+    max-width: 220px; /* Prevent it from getting too wide */
   }
   .btn-primary:active{background:var(--accent-press)}
   .btn.orange{
@@ -135,6 +146,10 @@
   }
   .btn.orange:active{
     background: #e67a1e;
+  }
+  /* Prevent side buttons from shrinking */
+  .btn-ghost, .btn-subtle {
+    flex-shrink: 0;
   }
   .btn-ghost{background:var(--pill); border-color:var(--pill-border)}
   .btn-subtle{background:none; border-color:var(--pill-border); color:var(--text); box-shadow:none; padding:13px 18px}
@@ -382,9 +397,9 @@
   }
 
   @media (max-width: 560px){
-    .row{gap:10px}
-    .btn{padding:11px 16px}
-    .btn-subtle{padding:10px 16px}
+    .row{gap:8px} /* Reduced gap for smaller screens */
+    .btn{padding:11px 14px}
+    .btn-subtle{padding:10px 14px}
     .footer-links{
       flex-wrap: wrap;
       justify-content: space-between;
@@ -396,7 +411,7 @@
   }
 </style>
 </head>
-<body id="root">
+<body class="auto" id="root">
   <div class="wrap">
     <header><div class="app-title">Workout Rest Timer</div></header>
 
@@ -490,6 +505,13 @@
         </label>
       </div>
       <div class="setting-row">
+        <span>Notifications</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="notificationToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
         <span>App Theme</span>
         <div class="modal-row" style="margin:0">
           <button class="btn btn-ghost" id="lightMode">Light</button>
@@ -517,7 +539,7 @@
     return h + ':' + pad(m) + ' ' + am;
   };
 
-  // persistent
+  // Using localStorage for simplicity as requested
   const store = {
     get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch{ return d } },
     set(k, v){ localStorage.setItem(k, JSON.stringify(v)) }
@@ -525,18 +547,29 @@
 
   // ---------- Sounds (WebAudio for zero-pop beeps)
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AudioCtx();
+  let ctx; // Initialize on first user gesture
   const haptics = 'vibrate' in navigator;
   const soundToggle = $('#soundToggle');
+  const notificationToggle = $('#notificationToggle');
+
+  function initAudio() {
+    if (!ctx) {
+        ctx = new AudioCtx();
+    }
+    return ctx.resume();
+  }
+  document.body.addEventListener('click', initAudio, { once: true });
+
 
   function playSound(){
-    if(!soundToggle.checked) return;
+    if(!soundToggle.checked || !ctx) return Promise.resolve();
     return ctx.resume();
   }
   function playHaptics(){
     if(haptics && soundToggle.checked) navigator.vibrate(200);
   }
   function beep(f=880, dur=0.12, vol=0.18, type='sine', delay=0){
+    if (!ctx) return;
     const t0 = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -577,7 +610,7 @@
   const setsInput = $('#setsInput');
   const presetList = $('#presetList');
 
-  const appearance = store.get('appearance','auto'); // auto | light | dark
+  const appearance = store.get('appearance','auto');
   applyAppearance(appearance);
 
   const soundsEnabled = store.get('sounds', true);
@@ -585,23 +618,26 @@
   else soundToggle.checked = false;
   soundToggle.addEventListener('change',()=>store.set('sounds', soundToggle.checked));
 
+  const notificationsEnabled = store.get('notifications', true);
+  if (notificationsEnabled) notificationToggle.checked = true;
+  else notificationToggle.checked = false;
+  notificationToggle.addEventListener('change', () => store.set('notifications', notificationToggle.checked));
+
   function applyAppearance(mode){
-    root.classList.remove('auto','light');
-    if(mode==='auto'){ root.classList.add('auto'); }
-    else if(mode==='light'){ root.classList.add('light'); }
-    else { /* dark default */ }
+    root.classList.remove('auto','light', 'dark');
+    root.classList.add(mode);
     store.set('appearance', mode);
   }
 
   const defaultPresets = [
-    {seconds:60, sets:3},
-    {seconds:60, sets:2},
-    {seconds:90, sets:3},
-    {seconds:120, sets:4},
-    {seconds:45, sets:3},
-    {seconds:75, sets:4},
+    {id: 'p1', seconds:60, sets:3},
+    {id: 'p2', seconds:60, sets:2},
+    {id: 'p3', seconds:90, sets:3},
+    {id: 'p4', seconds:120, sets:4},
+    {id: 'p5', seconds:45, sets:3},
+    {id: 'p6', seconds:75, sets:4},
   ];
-  const presets = store.get('presets', defaultPresets);
+  const presets = store.get('presets', defaultPresets.map(p => ({...p, id: p.id || crypto.randomUUID() })));
   let presetIndex = store.get('lastPresetIndex', 0);
   if(presetIndex >= presets.length) presetIndex = 0;
 
@@ -705,11 +741,9 @@
     if(state.status==='running'){
       state.remaining -= delta;
 
-      // Pulse for the last 3 seconds
       const wholeSec = Math.ceil(state.remaining / 1000);
       if (wholeSec <= 3 && wholeSec >= 1 && wholeSec !== state.lastWholeSec) {
         digits.classList.remove('pulse');
-        // A little trick to restart the animation
         void digits.offsetWidth;
         digits.classList.add('pulse');
       }
@@ -735,6 +769,8 @@
   function completeSet(){
     if(state.completing) return;
     state.completing = true;
+    
+    releaseWakeLock(); // Release wakelock when set is complete
 
     state.status = 'finished';
     state.remaining = 0;
@@ -742,6 +778,23 @@
     digits.textContent = '0:00';
     playEnd();
     digits.classList.remove('pulse');
+
+    let notifTitle = "Rest Complete!";
+    let notifBody = "";
+
+    if (state.setIndex < state.totalSets - 1) {
+      notifBody = `Set ${state.setIndex + 1} done. Get ready for set ${state.setIndex + 2}!`;
+    } else {
+      notifTitle = "Workout Finished!";
+      notifBody = `Great job! You completed all ${state.totalSets} sets.`;
+    }
+
+    showNotification(notifTitle, {
+        body: notifBody,
+        icon: 'resttimer-roundcap-dark.svg',
+        vibrate: [200, 100, 200],
+        tag: 'workout-timer'
+    });
 
     if(state.setIndex < state.totalSets-1){
       state.setIndex = Math.min(state.totalSets-1, state.setIndex + 1);
@@ -761,11 +814,12 @@
 
   function start(){
     if(state.status==='running') return;
+    initAudio();
+    requestNotificationPermission();
+    requestWakeLock();
     startBtn.textContent = 'Pause';
     startBtn.classList.remove('orange');
     nextBtn.textContent = 'Next';
-    nextBtn.classList.remove('hidden');
-    undoBtn.classList.remove('hidden');
     state.status='running';
     enableControls(true);
     state.lastTs=null;
@@ -773,10 +827,9 @@
     state.raf = requestAnimationFrame(tick);
   }
   function pause(){
+    releaseWakeLock();
     state.status='paused';
     startBtn.textContent='Resume';
-    nextBtn.classList.add('hidden');
-    undoBtn.classList.add('hidden');
     enableControls(true);
     digits.classList.remove('pulse');
   }
@@ -790,6 +843,7 @@
       state.setIndex = 0;
       updateSetPills();
       resetTimer();
+      releaseWakeLock();
     }
   }
 
@@ -817,10 +871,11 @@
   function enableControls(on){
     minusBtn.disabled = !on;
     plusBtn.disabled = !on;
-    minusBtn.classList.toggle('hidden', !on);
-    plusBtn.classList.toggle('hidden', !on);
-    nextBtn.classList.toggle('hidden', !on);
-    undoBtn.classList.toggle('hidden', !on);
+    const isRunning = state.status === 'running';
+    minusBtn.classList.toggle('hidden', !isRunning);
+    plusBtn.classList.toggle('hidden', !isRunning);
+    nextBtn.classList.toggle('hidden', !isRunning);
+    undoBtn.classList.toggle('hidden', !isRunning);
   }
 
   function todaysKey(){
@@ -838,7 +893,9 @@
   function renderLog(){
     const items = loadLog();
     if(!items.length){ logEl.innerHTML='No sets yet'; return; }
-    logEl.innerHTML = items.map(i=>`<div class="log-entry">Workout ${i.letter}: ${minsSec(presets.find(p=>p.seconds===state.seconds && p.sets===state.totalSets)?.seconds || state.seconds)} ×${state.totalSets} — ${i.time}</div>`).join('');
+    logEl.innerHTML = items.map(i => 
+      `<div class="log-entry">Workout ${i.letter}: ${minsSec(i.seconds)} ×${i.sets} — ${i.time}</div>`
+    ).join('');
   }
   function logWorkout(){
     const items = loadLog();
@@ -867,7 +924,6 @@
     modal.classList.remove('active');
   }
 
-  // Custom Preset Modal
   customBtn.addEventListener('click', ()=>{
     timeInput.value = '';
     setsInput.value = '3';
@@ -882,14 +938,13 @@
       return;
     }
     const seconds = (+m[1])*60 + (+m[2]);
-    presets.unshift({seconds, sets});
+    presets.unshift({id: crypto.randomUUID(), seconds, sets});
     store.set('presets', presets);
     renderPresets();
     selectPreset(0,true);
     closeModal(customModal);
   });
 
-  // Manage Presets Modal
   manageBtn.addEventListener('click', ()=>{
     presetList.innerHTML = presets.map((p,i)=>`
       <div class="modal-list-item">
@@ -904,10 +959,11 @@
       const i = parseInt(e.target.dataset.index, 10);
       presets.splice(i,1);
       store.set('presets', presets);
-      presetIndex = 0;
+      if (presetIndex >= i) {
+        presetIndex = Math.max(0, presetIndex - 1);
+      }
       renderPresets();
-      selectPreset(0,true);
-      // Re-render the list
+      selectPreset(presetIndex, true);
       presetList.innerHTML = presets.map((p,i)=>`
         <div class="modal-list-item">
           <span>${minsSec(p.seconds)} ×${p.sets}</span>
@@ -917,7 +973,6 @@
     }
   });
 
-  // Settings Modal
   settingsBtn.addEventListener('click', ()=>{
     openModal(settingsModal);
   });
@@ -925,8 +980,6 @@
   $('#darkMode').addEventListener('click', ()=> applyAppearance('dark'));
   $('#autoMode').addEventListener('click', ()=> applyAppearance('auto'));
 
-
-  // Universal close button for modals
   $$('.close-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       closeModal(e.target.closest('.modal'));
@@ -953,32 +1006,76 @@
     if(!digits.textContent || digits.textContent.includes('NaN')) digits.textContent = formatTime(state.remaining);
   },500);
 
-})();</script>
+  // ---------- Notifications & Background Timer
+  let notificationPermission = ('Notification' in window) ? Notification.permission : 'denied';
 
-<script>
-// Register service worker for offline/installability
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
-  });
-}
-
-// Keep screen awake during use (iOS 16+ supports Screen Wake Lock)
-let screenWakeLock = null;
-async function requestWakeLock() {
-  try {
-    screenWakeLock = await navigator.wakeLock.request('screen');
-    screenWakeLock.addEventListener('release', () => { screenWakeLock = null; });
-  } catch (e) { console.log('WakeLock unavailable', e); }
-}
-// Acquire on first tap; re-acquire when returning to app
-window.addEventListener('pointerdown', requestWakeLock, {once: true});
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && !screenWakeLock && 'wakeLock' in navigator) {
-    requestWakeLock();
+  function requestNotificationPermission() {
+      if (!notificationToggle.checked) return;
+      if ('Notification' in window && notificationPermission === 'default') {
+          Notification.requestPermission().then(permission => {
+              notificationPermission = permission;
+          });
+      }
   }
-});
-</script>
 
+  function showNotification(title, options) {
+      if (!notificationToggle.checked) return;
+      if ('Notification' in window && notificationPermission === 'granted') {
+          new Notification(title, options);
+      }
+  }
+
+  let backgroundTimeout = null;
+  let hiddenAt = null;
+
+  function handleVisibilityChange() {
+      if (document.hidden) {
+          if (state.status === 'running') {
+              cancelAnimationFrame(state.raf);
+              state.raf = null;
+              hiddenAt = Date.now();
+              backgroundTimeout = setTimeout(() => {
+                  completeSet();
+              }, state.remaining);
+          }
+      } else {
+          if (hiddenAt) {
+              clearTimeout(backgroundTimeout);
+              backgroundTimeout = null;
+              const elapsed = Date.now() - hiddenAt;
+              hiddenAt = null;
+              
+              if (state.status === 'running') {
+                  state.remaining -= elapsed;
+                  state.lastTs = null;
+                  if (state.remaining <= 0) {
+                      completeSet();
+                  } else {
+                      state.raf = requestAnimationFrame(tick);
+                  }
+              }
+          }
+      }
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  let screenWakeLock = null;
+  async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+          try {
+              screenWakeLock = await navigator.wakeLock.request('screen');
+          } catch (e) { console.log('WakeLock unavailable', e); }
+      }
+  }
+  async function releaseWakeLock() {
+      if (screenWakeLock) {
+          await screenWakeLock.release();
+          screenWakeLock = null;
+      }
+  }
+
+})();
+</script>
 </body>
 </html>
+
