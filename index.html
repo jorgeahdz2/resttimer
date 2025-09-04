@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<!-- Double-tap zoom fix, while preserving pinch-to-zoom -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <!-- Added meta tags to prevent caching -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Workout Rest Timer</title>
+<!-- PWA Manifest & Icons -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
 <link rel="icon" href="resttimer-roundcap-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
 <style>
@@ -69,6 +73,9 @@
     background: radial-gradient(1200px 500px at 50% -200px, rgba(255,255,255,.06), transparent 60%) , var(--bg);
     color:var(--text);
     font: 16px/1.45 system-ui, -apple-system, "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    /* Prevent font size adjustments on iOS */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   .wrap{max-width:980px;margin:24px auto;padding:0 16px}
   header{display:flex;justify-content:center;align-items:center;margin:12px 0 20px}
@@ -112,8 +119,16 @@
   .status strong.orange{
     color: var(--ring-15);
   }
-  /* BUG FIX 1: Responsive main controls row */
-  .row{display:flex; gap:12px; flex-wrap:nowrap; justify-content:center; align-items:center; width: 100%;}
+  /* Responsive main controls row with buffer margin */
+  .controls-row {
+    display:flex; 
+    gap:12px; 
+    flex-wrap:nowrap; 
+    justify-content:center; 
+    align-items:center; 
+    width: 100%;
+    padding: 0 8px; /* Buffer margin */
+  }
   .btn{
     background:var(--btn);
     color:var(--btn-text);
@@ -124,20 +139,25 @@
     font-weight:800;
     letter-spacing:.3px;
     cursor:pointer; user-select:none;
-    transition: transform .03s ease, background .15s ease, border-color .15s ease;
+    transition: transform .03s ease, background .15s ease, border-color .15s ease, color .15s ease;
     white-space: nowrap;
+    /* Prevent accidental double-tap zoom */
+    touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
   .btn:active{transform: scale(0.98);}
   .btn-primary{
     background:var(--accent); color:white;
     padding:14px 18px; font-size:16px;
     text-align: center;
-    /* Allow button to grow and shrink */
     flex-grow: 1;
     flex-shrink: 1;
     flex-basis: 0;
-    min-width: 100px; /* Smaller min-width for small screens */
-    max-width: 220px; /* Prevent it from getting too wide */
+    min-width: 100px;
+    max-width: 220px;
   }
   .btn-primary:active{background:var(--accent-press)}
   .btn.orange{
@@ -147,13 +167,24 @@
   .btn.orange:active{
     background: #e67a1e;
   }
-  /* Prevent side buttons from shrinking */
   .btn-ghost, .btn-subtle {
     flex-shrink: 0;
+  }
+  /* Minimum width for Back/Skip buttons */
+  .btn-ghost {
+    min-width: 100px;
   }
   .btn-ghost{background:var(--pill); border-color:var(--pill-border)}
   .btn-subtle{background:none; border-color:var(--pill-border); color:var(--text); box-shadow:none; padding:13px 18px}
   .btn-subtle:active{background:var(--pill); transform: none}
+
+  /* Icon styling */
+  .btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+
   .pill{padding:7px 14px; border-radius:999px; background:var(--pill); color:var(--text); border:1px solid var(--pill-border); font-weight:700; font-size:14px; box-shadow:var(--shadow);}
   .pill.active{outline:3px solid rgba(47,128,255,.35)}
   .pill.complete{
@@ -397,7 +428,7 @@
   }
 
   @media (max-width: 560px){
-    .row{gap:8px} /* Reduced gap for smaller screens */
+    .controls-row{gap:8px} /* Reduced gap for smaller screens */
     .btn{padding:11px 14px}
     .btn-subtle{padding:10px 14px}
     .footer-links{
@@ -432,23 +463,27 @@
           </div>
         </div>
 
-        <div class="row">
-          <button id="undoBtn" class="btn btn-ghost">Undo</button>
+        <div class="controls-row">
+          <button id="backBtn" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            Back
+          </button>
           <button id="minusBtn" class="btn btn-subtle">–15s</button>
           <button id="startBtn" class="btn btn-primary">Start</button>
           <button id="plusBtn" class="btn btn-subtle">+15s</button>
-          <button id="nextBtn" class="btn btn-ghost">Skip</button>
+          <button id="skipBtn" class="btn btn-ghost">
+            Skip Rest
+            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+          </button>
         </div>
 
         <div class="row" id="setRow">
-          <span class="pill active" data-set="0">Set 1</span>
-          <span class="pill" data-set="1">Set 2</span>
-          <span class="pill" data-set="2">Set 3</span>
+          <!-- Set pills will be generated here -->
         </div>
       </div>
 
       <div class="card">
-        <div class="row grid" id="presetRow"></div>
+        <div class="grid" id="presetRow"></div>
       </div>
 
       <div class="card">
@@ -476,7 +511,7 @@
       <label class="modal-label" for="timeInput">Time (m:ss)</label>
       <input type="text" id="timeInput" class="modal-input" placeholder="e.g., 1:30">
       <label class="modal-label" style="margin-top:12px" for="setsInput">Sets</label>
-      <input type="number" id="setsInput" class="modal-input" value="3">
+      <input type="number" id="setsInput" class="modal-input" value="3" min="1">
       <div class="modal-row">
         <button class="btn btn-ghost close-btn">Cancel</button>
         <button id="saveCustomBtn" class="btn btn-primary">Save</button>
@@ -539,34 +574,30 @@
     return h + ':' + pad(m) + ' ' + am;
   };
 
-  // Using localStorage for simplicity as requested
   const store = {
     get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch{ return d } },
     set(k, v){ localStorage.setItem(k, JSON.stringify(v)) }
   };
 
-  // ---------- Sounds (WebAudio for zero-pop beeps)
+  // ---------- Sounds & Haptics
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  let ctx; // Initialize on first user gesture
+  let ctx;
   const haptics = 'vibrate' in navigator;
   const soundToggle = $('#soundToggle');
   const notificationToggle = $('#notificationToggle');
 
   function initAudio() {
-    if (!ctx) {
-        ctx = new AudioCtx();
-    }
+    if (!ctx) ctx = new AudioCtx();
     return ctx.resume();
   }
   document.body.addEventListener('click', initAudio, { once: true });
-
 
   function playSound(){
     if(!soundToggle.checked || !ctx) return Promise.resolve();
     return ctx.resume();
   }
-  function playHaptics(){
-    if(haptics && soundToggle.checked) navigator.vibrate(200);
+  function playHaptics(pattern = 200){
+    if(haptics && soundToggle.checked) navigator.vibrate(pattern);
   }
   function beep(f=880, dur=0.12, vol=0.18, type='sine', delay=0){
     if (!ctx) return;
@@ -582,10 +613,10 @@
     osc.start(t0);
     osc.stop(t0 + dur + 0.02);
   }
-  function playShort(){ playSound().then(()=>beep(1200, 0.095, 0.14, 'sine')); playHaptics(); }
-  function playEnd(){ playSound().then(()=>{ beep(880,0.12,0.16,'sine'); beep(660,0.12,0.16,'sine',0.16); }); playHaptics(); }
+  function playShort(){ playSound().then(()=>beep(1200, 0.095, 0.14, 'sine')); playHaptics(50); }
+  function playEnd(){ playSound().then(()=>{ beep(880,0.12,0.16,'sine'); beep(660,0.12,0.16,'sine',0.16); }); playHaptics([200, 100, 200]); }
 
-  // ---------- Model
+  // ---------- DOM Elements
   const ring = $('#ring');
   const digits = $('#digits');
   const statusEl = $('#status');
@@ -593,78 +624,51 @@
   const startBtn = $('#startBtn');
   const minusBtn = $('#minusBtn');
   const plusBtn = $('#plusBtn');
-  const nextBtn = $('#nextBtn');
-  const undoBtn = $('#undoBtn');
+  const skipBtn = $('#skipBtn');
+  const backBtn = $('#backBtn');
   const presetRow = $('#presetRow');
   const logEl = $('#log');
-  const clearLogBtn = $('#clearLog');
-  const customBtn = $('#customBtn');
-  const manageBtn = $('#manageBtn');
-  const settingsBtn = $('#settingsBtn');
-  const root = document.getElementById('root');
-  const customModal = $('#customModal');
-  const manageModal = $('#manageModal');
-  const settingsModal = $('#settingsModal');
-  const modals = $$('.modal');
-  const timeInput = $('#timeInput');
-  const setsInput = $('#setsInput');
-  const presetList = $('#presetList');
+  const root = $('#root');
 
+  // ---------- App State & Data
+  const state = {
+    seconds: 0,
+    totalSets: 0,
+    setIndex: 0,
+    status:'idle', // idle, running, paused, finished
+    remaining: 0,
+    raf: null,
+    lastTs: null,
+    justWarned: false,
+    completing: false,
+    workoutLetterIndex: store.get('workoutLetterIndex', 0),
+    lastWholeSec: null,
+    actualRestTime: 0,
+    nudgeInterval: null,
+  };
+  
   const appearance = store.get('appearance','auto');
   applyAppearance(appearance);
-
-  const soundsEnabled = store.get('sounds', true);
-  if(soundsEnabled) soundToggle.checked = true;
-  else soundToggle.checked = false;
-  soundToggle.addEventListener('change',()=>store.set('sounds', soundToggle.checked));
-
-  const notificationsEnabled = store.get('notifications', true);
-  if (notificationsEnabled) notificationToggle.checked = true;
-  else notificationToggle.checked = false;
-  notificationToggle.addEventListener('change', () => store.set('notifications', notificationToggle.checked));
-
-  function applyAppearance(mode){
-    root.classList.remove('auto','light', 'dark');
-    root.classList.add(mode);
-    store.set('appearance', mode);
-  }
+  soundToggle.checked = store.get('sounds', true);
+  notificationToggle.checked = store.get('notifications', true);
 
   const defaultPresets = [
-    {id: 'p1', seconds:60, sets:3},
-    {id: 'p2', seconds:60, sets:2},
-    {id: 'p3', seconds:90, sets:3},
-    {id: 'p4', seconds:120, sets:4},
-    {id: 'p5', seconds:45, sets:3},
-    {id: 'p6', seconds:75, sets:4},
+    {id: 'p1', seconds:60, sets:3}, {id: 'p2', seconds:60, sets:2},
+    {id: 'p3', seconds:90, sets:3}, {id: 'p4', seconds:120, sets:4},
+    {id: 'p5', seconds:45, sets:3}, {id: 'p6', seconds:75, sets:4},
   ];
-  const presets = store.get('presets', defaultPresets.map(p => ({...p, id: p.id || crypto.randomUUID() })));
+  let presets = store.get('presets', defaultPresets.map(p => ({...p, id: p.id || crypto.randomUUID() })));
   let presetIndex = store.get('lastPresetIndex', 0);
   if(presetIndex >= presets.length) presetIndex = 0;
 
-  const state = {
-    seconds: presets[presetIndex].seconds,
-    totalSets: presets[presetIndex].sets,
-    setIndex: 0,
-    status:'idle',
-    remaining: presets[presetIndex].seconds * 1000,
-    raf: null,
-    lastTs: null,
-    justWarned:false,
-    completing:false,
-    workoutLetterIndex: store.get('workoutLetterIndex', 0),
-    lastWholeSec: null,
-  };
-
+  // ---------- Core Functions
   function renderPresets(){
-    presetRow.innerHTML = '';
-    presets.forEach((p,i)=>{
-      const b = document.createElement('button');
-      b.className = 'preset-btn';
-      b.innerHTML = `<span class="time-label">${minsSec(p.seconds)}</span><span class="sets-label">×${p.sets} Sets</span>`;
-      if(i===presetIndex) b.classList.add('active');
-      b.addEventListener('click', ()=> selectPreset(i,true));
-      presetRow.appendChild(b);
-    });
+    presetRow.innerHTML = presets.map((p,i) => `
+      <button class="preset-btn ${i === presetIndex ? 'active' : ''}" data-index="${i}">
+        <span class="time-label">${minsSec(p.seconds)}</span>
+        <span class="sets-label">×${p.sets} Sets</span>
+      </button>
+    `).join('');
   }
 
   function selectPreset(i, fromUser=false){
@@ -680,56 +684,48 @@
   }
 
   function updateSetPills(){
-    setRow.innerHTML = '';
-    for(let s=0;s<state.totalSets;s++){
-      const pill = document.createElement('span');
-      pill.className = 'pill' + (s===state.setIndex?' active':'') + (s<state.setIndex?' complete':'');
-      pill.dataset.set = s;
-      pill.textContent = 'Set ' + (s+1);
-      pill.addEventListener('click',()=>{
-        state.setIndex = s;
-        resetTimer(true);
-      });
-      setRow.appendChild(pill);
-    }
+    setRow.innerHTML = Array.from({length: state.totalSets}, (_, s) => `
+      <span class="pill ${s === state.setIndex ? 'active' : ''} ${s < state.setIndex ? 'complete' : ''}" data-set="${s}">
+        Set ${s + 1}
+      </span>
+    `).join('');
   }
 
   function resetTimer(hard=false){
-    state.remaining = state.seconds*1000;
+    state.remaining = state.seconds * 1000;
     state.status = 'idle';
     state.justWarned = false;
     state.completing = false;
+    state.actualRestTime = 0;
     cancelAnimationFrame(state.raf);
     state.raf = null;
     state.lastTs = null;
     digits.textContent = formatTime(state.remaining);
-    statusEl.innerHTML = 'Rest · idle';
     ring.style.stroke = getRingColor();
     drawRing(1);
-    startBtn.textContent = 'Start';
-    startBtn.classList.remove('orange');
     if(hard) updateSetPills();
-    enableControls(false);
+    updateControls();
     state.lastWholeSec = null;
     digits.classList.remove('pulse');
-  }
-
-  function getRingColor(){
-    if(state.remaining <= 15000) return getComputedStyle(document.documentElement).getPropertyValue('--ring-15') || '#ff8a22';
-    return getComputedStyle(document.documentElement).getPropertyValue('--ring') || '#2e7cf7';
   }
 
   function formatTime(ms){
     ms = Math.max(0, ms|0);
     let s = Math.ceil(ms/1000);
     const m = Math.floor(s/60);
-    s = s%60;
-    return m + ':' + pad(s);
+    s %= 60;
+    return `${m}:${pad(s)}`;
   }
 
-  const CIRCUM = 2*Math.PI*47;
+  function minsSec(sec){
+    const m = Math.floor(sec/60);
+    const s = sec%60;
+    return `${m}:${pad(s)}`;
+  }
+  
+  const CIRCUM = 2 * Math.PI * 47;
   function drawRing(progress){
-    const offset = CIRCUM*(1-progress);
+    const offset = CIRCUM * (1 - progress);
     ring.style.strokeDasharray = CIRCUM.toFixed(2);
     ring.style.strokeDashoffset = offset.toFixed(2);
   }
@@ -738,8 +734,10 @@
     if(!state.lastTs) state.lastTs = ts;
     const delta = ts - state.lastTs;
     state.lastTs = ts;
-    if(state.status==='running'){
+
+    if(state.status === 'running'){
       state.remaining -= delta;
+      state.actualRestTime += delta;
 
       const wholeSec = Math.ceil(state.remaining / 1000);
       if (wholeSec <= 3 && wholeSec >= 1 && wholeSec !== state.lastWholeSec) {
@@ -751,190 +749,296 @@
 
       if(state.remaining <= 15000 && !state.justWarned){
         state.justWarned = true;
-        ring.style.stroke = getRingColor();
         playShort();
       }
+      
       if(state.remaining <= 0){
         completeSet();
         return;
       }
+      
       digits.textContent = formatTime(state.remaining);
       ring.style.stroke = getRingColor();
-      drawRing(state.remaining/(state.seconds*1000));
-      statusEl.innerHTML = (state.setIndex+1 < state.totalSets) ? `Up next: <strong>Set ${state.setIndex+2}</strong>` : `Rest: <strong class="orange">Last set</strong>`;
-      state.raf = requestAnimationFrame(tick);
+      drawRing(state.remaining / (state.seconds * 1000));
+      updateControls();
     }
+    state.raf = requestAnimationFrame(tick);
   }
 
   function completeSet(){
     if(state.completing) return;
     state.completing = true;
-    
-    releaseWakeLock(); // Release wakelock when set is complete
+    releaseWakeLock();
 
-    state.status = 'finished';
+    state.status = 'idle'; // Temporarily idle to allow next set to start
     state.remaining = 0;
     drawRing(0);
     digits.textContent = '0:00';
     playEnd();
+    logWorkout();
     digits.classList.remove('pulse');
-
+    
     let notifTitle = "Rest Complete!";
-    let notifBody = "";
+    let notifBody = (state.setIndex < state.totalSets - 1) 
+      ? `Set ${state.setIndex + 1} done. Get ready for set ${state.setIndex + 2}!`
+      : `Great job! You completed all ${state.totalSets} sets.`;
+    if(state.setIndex >= state.totalSets - 1) notifTitle = "Workout Finished!";
+    
+    showNotification(notifTitle, { body: notifBody, tag: 'workout-timer' });
 
-    if (state.setIndex < state.totalSets - 1) {
-      notifBody = `Set ${state.setIndex + 1} done. Get ready for set ${state.setIndex + 2}!`;
-    } else {
-      notifTitle = "Workout Finished!";
-      notifBody = `Great job! You completed all ${state.totalSets} sets.`;
-    }
-
-    showNotification(notifTitle, {
-        body: notifBody,
-        icon: 'resttimer-roundcap-dark.svg',
-        vibrate: [200, 100, 200],
-        tag: 'workout-timer'
-    });
-
-    if(state.setIndex < state.totalSets-1){
-      state.setIndex = Math.min(state.totalSets-1, state.setIndex + 1);
+    if(state.setIndex < state.totalSets - 1){
+      state.setIndex++;
       updateSetPills();
-      resetTimer(true);
-      setTimeout(()=>{ state.completing=false; }, 200);
-    }else{
+      resetTimer();
+    } else {
+      state.status = 'finished';
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if(finalPill) finalPill.classList.add('complete');
+      updateControls();
+    }
+    setTimeout(() => { state.completing = false; }, 200);
+  }
+  
+  function updateControls() {
+    const isRunning = state.status === 'running';
+    const isPaused = state.status === 'paused';
+    const isFinished = state.status === 'finished';
+    const isFirstSet = state.setIndex === 0;
+    const isLastSet = state.setIndex === state.totalSets - 1;
 
+    // Start/Pause/Resume Button
+    if (isFinished) {
       startBtn.textContent = 'Finish workout';
       startBtn.classList.add('orange');
-      enableControls(false);
-      setTimeout(()=>{ state.completing=false; }, 200);
+    } else if (isRunning) {
+      startBtn.textContent = 'Pause';
+      startBtn.classList.remove('orange');
+    } else if (isPaused) {
+      startBtn.textContent = 'Resume';
+      startBtn.classList.remove('orange');
+    } else { // idle
+      startBtn.textContent = 'Start';
+      startBtn.classList.remove('orange');
+    }
+
+    // Nudge Buttons Visibility
+    minusBtn.classList.toggle('hidden', !(isRunning || isPaused));
+    plusBtn.classList.toggle('hidden', !(isRunning || isPaused));
+
+    // Back Button
+    backBtn.disabled = isFirstSet && !isFinished;
+    
+    // Skip Button Label
+    const skipBtnText = skipBtn.childNodes[0];
+    if (isLastSet && (isRunning || isPaused)) {
+        skipBtnText.nodeValue = 'Finish now ';
+    } else {
+        skipBtnText.nodeValue = 'Skip Rest ';
+    }
+    
+    // Status Text
+    if (isRunning) {
+        statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
+    } else {
+        statusEl.innerHTML = 'Rest · ' + state.status;
+    }
+  }
+
+  function toggleStart(){
+    if (state.status === 'idle' || state.status === 'paused') start();
+    else if (state.status === 'running') pause();
+    else if (state.status === 'finished') {
+        state.setIndex = 0;
+        updateSetPills();
+        resetTimer();
     }
   }
 
   function start(){
-    if(state.status==='running') return;
+    if(state.status === 'running') return;
     initAudio();
     requestNotificationPermission();
     requestWakeLock();
-    startBtn.textContent = 'Pause';
-    startBtn.classList.remove('orange');
-    nextBtn.textContent = 'Next';
     state.status='running';
-    enableControls(true);
     state.lastTs=null;
-    ring.style.stroke = getRingColor();
     state.raf = requestAnimationFrame(tick);
+    updateControls();
   }
+
   function pause(){
     releaseWakeLock();
     state.status='paused';
-    startBtn.textContent='Resume';
-    enableControls(true);
     digits.classList.remove('pulse');
+    cancelAnimationFrame(state.raf);
+    state.raf = null;
+    updateControls();
   }
-  function toggleStart(){
-    if(state.status==='idle' || state.status==='paused'){
-      start();
-    }else if(state.status==='running'){
-      pause();
-    }else if(state.status==='finished'){
+
+  function skip(){
+    if (state.setIndex < state.totalSets - 1) {
       logWorkout();
-      state.setIndex = 0;
+      state.setIndex++;
       updateSetPills();
       resetTimer();
+    } else {
+      logWorkout();
+      state.status = 'finished';
+      state.remaining = 0;
+      drawRing(0);
+      digits.textContent = '0:00';
+      const finalPill = $(`[data-set="${state.setIndex}"]`);
+      if(finalPill) finalPill.classList.add('complete');
+      updateControls();
       releaseWakeLock();
     }
   }
 
-  function next(){
-    if(state.setIndex < state.totalSets-1){
-      state.setIndex++;
-      updateSetPills();
-      resetTimer();
+  function back(){
+    if (state.status === 'finished') {
+        state.status = 'idle';
+        updateSetPills(); // Removes 'complete' from last pill
+    } else if(state.setIndex > 0){
+        state.setIndex--;
+        updateSetPills();
     }
-  }
-  function undo(){
-    if(state.setIndex>0){
-      state.setIndex--;
-      updateSetPills();
-      resetTimer();
-    }
-  }
-  function nudger(delta){
-    const cap = state.seconds*1000;
-    state.remaining = Math.min(cap, Math.max(0, (state.remaining|0)+delta));
-    digits.textContent = formatTime(state.remaining);
-    ring.style.stroke = getRingColor();
-    drawRing(state.remaining/cap);
-  }
-  function enableControls(on){
-    minusBtn.disabled = !on;
-    plusBtn.disabled = !on;
-    const isRunning = state.status === 'running';
-    minusBtn.classList.toggle('hidden', !isRunning);
-    plusBtn.classList.toggle('hidden', !isRunning);
-    nextBtn.classList.toggle('hidden', !isRunning);
-    undoBtn.classList.toggle('hidden', !isRunning);
+    resetTimer();
   }
 
+  function nudger(delta){
+    state.remaining = Math.max(0, (state.remaining|0) + delta);
+    if(state.status !== 'running') { // if paused or idle
+        state.seconds = Math.round(state.remaining / 1000);
+    }
+    digits.textContent = formatTime(state.remaining);
+    ring.style.stroke = getRingColor();
+    drawRing(state.remaining / (state.seconds * 1000));
+  }
+  
+  function getRingColor(){
+    if(state.remaining <= 15000) return getComputedStyle(document.documentElement).getPropertyValue('--ring-15') || '#ff8a22';
+    return getComputedStyle(document.documentElement).getPropertyValue('--ring') || '#2e7cf7';
+  }
+
+  // ---------- Logging
   function todaysKey(){
     const d = new Date();
-    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    return `log-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
-  function loadLog(){
-    const key = 'log-'+todaysKey();
-    return store.get(key, []);
-  }
-  function saveLog(items){
-    const key = 'log-'+todaysKey();
-    store.set(key, items);
-  }
+  
+  function loadLog(){ return store.get(todaysKey(), []); }
+  function saveLog(items){ store.set(todaysKey(), items); }
+  
   function renderLog(){
     const items = loadLog();
-    if(!items.length){ logEl.innerHTML='No sets yet'; return; }
-    logEl.innerHTML = items.map(i => 
-      `<div class="log-entry">Workout ${i.letter}: ${minsSec(i.seconds)} ×${i.sets} — ${i.time}</div>`
-    ).join('');
+    logEl.innerHTML = !items.length ? 'No sets yet' 
+      : items.map(i => `<div class="log-entry">Workout ${i.letter}: ${minsSec(Math.round(i.actualTime/1000))} ×${i.sets} — ${i.time}</div>`).join('');
   }
+
   function logWorkout(){
+    if (state.actualRestTime < 1000) return; // Don't log empty sets
     const items = loadLog();
     const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const letter = letters[state.workoutLetterIndex % letters.length];
-    state.workoutLetterIndex++;
-    store.set('workoutLetterIndex', state.workoutLetterIndex);
+    
     const p = presets[presetIndex];
-    items.push({letter, seconds:p.seconds, sets:p.sets, time: fmt12(new Date())});
+    items.push({
+      letter, 
+      seconds: p.seconds, 
+      sets: p.sets, 
+      time: fmt12(new Date()),
+      actualTime: state.actualRestTime
+    });
+
     saveLog(items);
     renderLog();
-  }
-  function minsSec(sec){
-    const m = Math.floor(sec/60);
-    const s = sec%60;
-    return m + ':' + pad(s);
+    
+    // Only increment letter index if it's a new workout session (e.g., last set completed)
+    if (state.setIndex >= state.totalSets - 1) {
+        state.workoutLetterIndex++;
+        store.set('workoutLetterIndex', state.workoutLetterIndex);
+    }
   }
 
-  // ---------- Modal Logic
+  // ---------- Settings & Modals
+  function applyAppearance(mode){
+    root.className = mode;
+    store.set('appearance', mode);
+  }
+
   function openModal(modal){
-    modals.forEach(m => m.classList.remove('active'));
+    $$('.modal').forEach(m => m.classList.remove('active'));
     modal.classList.add('active');
   }
+  function closeModal(modal){ modal.classList.remove('active'); }
 
-  function closeModal(modal){
-    modal.classList.remove('active');
+  // ---------- Event Listeners
+  presetRow.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.preset-btn');
+    if(btn) selectPreset(parseInt(btn.dataset.index, 10), true);
+  });
+  
+  startBtn.addEventListener('click', toggleStart);
+  skipBtn.addEventListener('click', skip);
+  backBtn.addEventListener('click', back);
+  
+  function handleNudge(delta, start) {
+      if (start) {
+          nudger(delta);
+          state.nudgeInterval = setInterval(() => nudger(delta), 150);
+      } else {
+          clearInterval(state.nudgeInterval);
+      }
   }
 
-  customBtn.addEventListener('click', ()=>{
-    timeInput.value = '';
-    setsInput.value = '3';
-    openModal(customModal);
+  minusBtn.addEventListener('mousedown', () => handleNudge(-15000, true));
+  plusBtn.addEventListener('mousedown', () => handleNudge(15000, true));
+  minusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(-15000, true); });
+  plusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(15000, true); });
+  document.addEventListener('mouseup', () => handleNudge(0, false));
+  document.addEventListener('touchend', () => handleNudge(0, false));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); toggleStart(); }
+    if (e.code === 'ArrowRight') { e.preventDefault(); skip(); }
+    if (e.code === 'ArrowLeft') { e.preventDefault(); back(); }
+    if (e.key === '+') { e.preventDefault(); nudger(15000); }
+    if (e.key === '-') { e.preventDefault(); nudger(-15000); }
   });
+  
+  $('#clearLog').addEventListener('click', ()=>{
+    saveLog([]); renderLog();
+    store.set('workoutLetterIndex', 0);
+    state.workoutLetterIndex = 0;
+  });
+  
+  // Settings listeners
+  soundToggle.addEventListener('change',()=>store.set('sounds', soundToggle.checked));
+  notificationToggle.addEventListener('change', () => store.set('notifications', notificationToggle.checked));
+  $('#lightMode').addEventListener('click', ()=> applyAppearance('light'));
+  $('#darkMode').addEventListener('click', ()=> applyAppearance('dark'));
+  $('#autoMode').addEventListener('click', ()=> applyAppearance('auto'));
+  
+  // Modal listeners
+  $('#customBtn').addEventListener('click', ()=>{
+    $('#timeInput').value = '';
+    $('#setsInput').value = '3';
+    openModal($('#customModal'));
+  });
+  $('#manageBtn').addEventListener('click', ()=>{
+    renderManageList();
+    openModal($('#manageModal'));
+  });
+  $('#settingsBtn').addEventListener('click', ()=> openModal($('#settingsModal')));
+  $$('.close-btn').forEach(b => b.addEventListener('click', e => closeModal(e.target.closest('.modal'))));
+
   $('#saveCustomBtn').addEventListener('click', ()=>{
-    const v = timeInput.value;
-    const m = v.match(/^\s*(\d+):(\d{1,2})\s*$/);
+    const timeInput = $('#timeInput');
+    const setsInput = $('#setsInput');
+    const m = timeInput.value.match(/^\s*(\d+):([0-5]\d)\s*$/);
     const sets = parseInt(setsInput.value, 10);
     if(!m || isNaN(sets) || sets <= 0) {
-      alert('Invalid format. Please use "m:ss" for time and a number for sets.');
+      alert('Invalid format. Please use "m:ss" for time and a number > 0 for sets.');
       return;
     }
     const seconds = (+m[1])*60 + (+m[2]);
@@ -942,20 +1046,25 @@
     store.set('presets', presets);
     renderPresets();
     selectPreset(0,true);
-    closeModal(customModal);
+    closeModal($('#customModal'));
   });
-
-  manageBtn.addEventListener('click', ()=>{
-    presetList.innerHTML = presets.map((p,i)=>`
+  
+  function renderManageList() {
+      const canDelete = presets.length > 1;
+      $('#presetList').innerHTML = presets.map((p,i)=>`
       <div class="modal-list-item">
         <span>${minsSec(p.seconds)} ×${p.sets}</span>
-        <button class="delete-btn" data-index="${i}">&times;</button>
+        ${canDelete ? `<button class="delete-btn" data-index="${i}">&times;</button>` : ''}
       </div>
     `).join('');
-    openModal(manageModal);
-  });
-  presetList.addEventListener('click', (e)=>{
+  }
+
+  $('#presetList').addEventListener('click', (e)=>{
     if(e.target.classList.contains('delete-btn')){
+      if (presets.length <= 1) {
+          alert("You must have at least one preset.");
+          return;
+      }
       const i = parseInt(e.target.dataset.index, 10);
       presets.splice(i,1);
       store.set('presets', presets);
@@ -964,89 +1073,42 @@
       }
       renderPresets();
       selectPreset(presetIndex, true);
-      presetList.innerHTML = presets.map((p,i)=>`
-        <div class="modal-list-item">
-          <span>${minsSec(p.seconds)} ×${p.sets}</span>
-          <button class="delete-btn" data-index="${i}">&times;</button>
-        </div>
-      `).join('');
+      renderManageList();
     }
   });
 
-  settingsBtn.addEventListener('click', ()=>{
-    openModal(settingsModal);
-  });
-  $('#lightMode').addEventListener('click', ()=> applyAppearance('light'));
-  $('#darkMode').addEventListener('click', ()=> applyAppearance('dark'));
-  $('#autoMode').addEventListener('click', ()=> applyAppearance('auto'));
-
-  $$('.close-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      closeModal(e.target.closest('.modal'));
-    });
-  });
-
-  startBtn.addEventListener('click', toggleStart);
-  nextBtn.addEventListener('click', next);
-  undoBtn.addEventListener('click', undo);
-  minusBtn.addEventListener('click', ()=> nudger(-15000));
-  plusBtn.addEventListener('click', ()=> nudger(15000));
-  clearLogBtn.addEventListener('click', ()=>{
-    saveLog([]); renderLog();
-    store.set('workoutLetterIndex', 0);
-    state.workoutLetterIndex = 0;
-  });
-
-  renderPresets();
-  selectPreset(presetIndex);
-  renderLog();
-
-  setInterval(()=>{
-    if(!isFinite(state.remaining)) resetTimer();
-    if(!digits.textContent || digits.textContent.includes('NaN')) digits.textContent = formatTime(state.remaining);
-  },500);
-
-  // ---------- Notifications & Background Timer
+  // ---------- Notifications & Background Handling
   let notificationPermission = ('Notification' in window) ? Notification.permission : 'denied';
 
   function requestNotificationPermission() {
       if (!notificationToggle.checked) return;
       if ('Notification' in window && notificationPermission === 'default') {
-          Notification.requestPermission().then(permission => {
-              notificationPermission = permission;
-          });
+          Notification.requestPermission().then(p => { notificationPermission = p; });
       }
   }
 
   function showNotification(title, options) {
-      if (!notificationToggle.checked) return;
-      if ('Notification' in window && notificationPermission === 'granted') {
-          new Notification(title, options);
-      }
+      if (!notificationToggle.checked || !('Notification' in window) || notificationPermission !== 'granted') return;
+      navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) reg.showNotification(title, { ...options, icon: 'apple-touch-icon.png', vibrate: [200, 100, 200] });
+      });
   }
 
-  let backgroundTimeout = null;
   let hiddenAt = null;
-
-  function handleVisibilityChange() {
+  document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
           if (state.status === 'running') {
+              hiddenAt = Date.now();
               cancelAnimationFrame(state.raf);
               state.raf = null;
-              hiddenAt = Date.now();
-              backgroundTimeout = setTimeout(() => {
-                  completeSet();
-              }, state.remaining);
           }
       } else {
           if (hiddenAt) {
-              clearTimeout(backgroundTimeout);
-              backgroundTimeout = null;
               const elapsed = Date.now() - hiddenAt;
               hiddenAt = null;
-              
               if (state.status === 'running') {
                   state.remaining -= elapsed;
+                  state.actualRestTime += elapsed;
                   state.lastTs = null;
                   if (state.remaining <= 0) {
                       completeSet();
@@ -1055,16 +1117,21 @@
                   }
               }
           }
+          requestWakeLock(); // Re-acquire wake lock on visibility
       }
-  }
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+  });
 
+  // ---------- Screen Wake Lock
   let screenWakeLock = null;
   async function requestWakeLock() {
       if ('wakeLock' in navigator) {
           try {
               screenWakeLock = await navigator.wakeLock.request('screen');
-          } catch (e) { console.log('WakeLock unavailable', e); }
+              screenWakeLock.addEventListener('release', () => {
+                  // If timer is running, re-request lock
+                  if (state.status === 'running') requestWakeLock();
+              });
+          } catch (e) { /* WakeLock unavailable */ }
       }
   }
   async function releaseWakeLock() {
@@ -1074,7 +1141,20 @@
       }
   }
 
+  // ---------- Initial Setup
+  selectPreset(presetIndex);
+  renderLog();
+
 })();
+</script>
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
+        });
+    }
 </script>
 </body>
 </html>
+
