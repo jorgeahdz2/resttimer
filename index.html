@@ -1,72 +1,1080 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Workout Rest Timer</title>
-  <link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
-  <link rel="icon" href="resttimer-roundcap-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0f1419">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>
-    /* simplified styling placeholder */
-    body { font-family: system-ui, sans-serif; margin:0; padding:0; background:#f6f8fb; color:#0b1722; }
-    .wrap { max-width:600px; margin:0 auto; padding:16px; }
-    header { text-align:center; margin:20px 0; font-weight:800; font-size:24px; }
-    .row { display:flex; gap:12px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
-    .btn { padding:12px 18px; border-radius:12px; border:1px solid #ccc; background:#fff; cursor:pointer; font-weight:700; }
-    .btn-primary { background:#1f6eff; color:#fff; }
-    .ring-wrap { width:280px; margin:0 auto 24px; }
-    .time { text-align:center; font-size:48px; font-weight:800; }
-    .status { text-align:center; color:#6b7c8d; font-weight:600; margin-top:6px; }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<!-- Added meta tags to prevent caching -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Workout Rest Timer</title>
+<link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+<link rel="icon" href="resttimer-roundcap-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
+<style>
+  :root{
+    --bg: #0f1419;
+    --card: #141a21;
+    --text: #eaf0f6;
+    --muted:#9fb0c1;
+    --ring:#2e7cf7;
+    --ring-15:#ff8a22;
+    --accent:#2e7cf7;
+    --accent-press:#1f66d6;
+    --btn:#1a2230;
+    --btn-text:#eaf0f6;
+    --pill:#10161d;
+    --pill-border:#243040;
+    --shadow: 0 4px 12px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.1);
+    --warn-fill: rgba(255,138,34,.15);
+  }
+  .light{
+    --bg:#f6f8fb;
+    --card:#ffffff;
+    --text:#0b1722;
+    --muted:#6b7c8d;
+    --ring:#1f6eff;
+    --ring-15:#ff7a1a;
+    --accent:#1f6eff;
+    --accent-press:#0d50c9;
+    --btn:#f3f5f8;
+    --btn-text:#0b1722;
+    --pill:#f6f8fb;
+    --pill-border:#e4e9ef;
+    --shadow: 0 4px 12px rgba(20,30,40,.08), 0 1px 2px rgba(20,30,40,.05);
+    --warn-fill: rgba(255,122,26,.15);
+  }
+  @media (prefers-color-scheme: light){
+    :root.auto{
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#0b1722;
+      --muted:#6b7c8d;
+      --ring:#1f6eff;
+      --ring-15:#ff7a1a;
+      --accent:#1f6eff;
+      --accent-press:#0d50c9;
+      --btn:#f3f5f8;
+      --btn-text:#0b1722;
+      --pill:#f6f8fb;
+      --pill-border:#e4e9ef;
+      --shadow: 0 4px 12px rgba(20,30,40,.08), 0 1px 2px rgba(20,30,40,.05);
+      --warn-fill: rgba(255,122,26,.15);
+    }
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: radial-gradient(1200px 500px at 50% -200px, rgba(255,255,255,.06), transparent 60%) , var(--bg);
+    color:var(--text);
+    font: 16px/1.45 system-ui, -apple-system, "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+  header{display:flex;justify-content:center;align-items:center;margin:12px 0 20px}
+  .app-title{
+    font-weight:800;
+    letter-spacing:.2px;
+    font-size: clamp(22px, 3.4vw, 32px);
+    text-shadow: 0 2px 16px rgba(0,0,0,.25);
+  }
+  .cards{display:flex; flex-direction:column; gap:12px}
+  .card{
+    background:var(--card);
+    border-radius:22px;
+    box-shadow: var(--shadow);
+    padding:18px 18px 22px;
+  }
+  .main{display:flex;flex-direction:column; align-items:center}
+  .ring-wrap{width:min(60vw, 420px); max-width:420px; aspect-ratio:1/1; position:relative; margin-bottom: 56px;}
+  svg{width:100%;height:100%;display:block}
+  .ring-bg{stroke: var(--pill-border); opacity:1}
+  .ring{stroke:var(--ring); transition: stroke .2s ease}
+  .time{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column;
+    pointer-events:none; text-align:center;
+  }
+  .time .digits{
+    font-weight:800;
+    letter-spacing: .5px;
+    font-size:clamp(80px, 12vw, 120px);
+    text-shadow: 0 2px 16px rgba(0,0,0,.25);
+  }
+  .status{
+    margin-top:6px;
+    color:var(--muted);
+    font-weight:600;
+    letter-spacing:.2px;
+  }
+  .status strong{
+    font-weight: 800;
+  }
+  .status strong.orange{
+    color: var(--ring-15);
+  }
+  /* BUG FIX 1: Responsive main controls row */
+  .row{display:flex; gap:12px; flex-wrap:nowrap; justify-content:center; align-items:center; width: 100%;}
+  .btn{
+    background:var(--btn);
+    color:var(--btn-text);
+    padding:14px 18px;
+    border-radius:14px;
+    border:1px solid transparent;
+    box-shadow: var(--shadow);
+    font-weight:800;
+    letter-spacing:.3px;
+    cursor:pointer; user-select:none;
+    transition: transform .03s ease, background .15s ease, border-color .15s ease;
+    white-space: nowrap;
+  }
+  .btn:active{transform: scale(0.98);}
+  .btn-primary{
+    background:var(--accent); color:white;
+    padding:14px 18px; font-size:16px;
+    text-align: center;
+    /* Allow button to grow and shrink */
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 100px; /* Smaller min-width for small screens */
+    max-width: 220px; /* Prevent it from getting too wide */
+  }
+  .btn-primary:active{background:var(--accent-press)}
+  .btn.orange{
+    background: var(--ring-15);
+    color: white;
+  }
+  .btn.orange:active{
+    background: #e67a1e;
+  }
+  /* Prevent side buttons from shrinking */
+  .btn-ghost, .btn-subtle {
+    flex-shrink: 0;
+  }
+  .btn-ghost{background:var(--pill); border-color:var(--pill-border)}
+  .btn-subtle{background:none; border-color:var(--pill-border); color:var(--text); box-shadow:none; padding:13px 18px}
+  .btn-subtle:active{background:var(--pill); transform: none}
+  .pill{padding:7px 14px; border-radius:999px; background:var(--pill); color:var(--text); border:1px solid var(--pill-border); font-weight:700; font-size:14px; box-shadow:var(--shadow);}
+  .pill.active{outline:3px solid rgba(47,128,255,.35)}
+  .pill.complete{
+    background:var(--warn-fill);
+    color: var(--ring-15);
+    border-color: var(--ring-15);
+  }
+  .subtle{color:var(--muted); font-weight:700}
+  .subtle strong{color:var(--text)}
+  .grid{display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); align-items:center}
+  .footer-row{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center}
+  .logbox{padding:12px 14px; background:var(--pill); border:1px solid var(--pill-border); border-radius:14px; flex:1; line-height:1.9; margin-top:20px; box-shadow:var(--shadow);}
+  .log-entry{padding:10px 2px; border-top:1px solid var(--pill-border); margin-top:2px}
+  .log-entry:first-child{border-top:0; margin-top:0}
+  .small{font-size:13px}
+  .hidden{display:none !important}
+  .center{display:flex; align-items:center; justify-content:center}
+
+  /* Compact Preset Buttons */
+  .preset-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0;
+    background: var(--btn);
+    color: var(--btn-text);
+    border-radius: 14px;
+    border: 1px solid var(--pill-border);
+    box-shadow: none;
+    cursor: pointer;
+    user-select: none;
+    transition: transform .03s ease, background .15s ease, border-color .15s ease;
+    text-align: center;
+  }
+  .preset-btn:active{transform: scale(0.98);}
+
+  /* Consistent active preset pill */
+  .preset-btn.active{
+    background: rgba(47,128,255,.1);
+    color: var(--accent);
+    border-color: var(--accent);
+    box-shadow: none;
+  }
+  .preset-btn.active:active{background: rgba(47,128,255,.15);}
+  .preset-btn .time-label {
+    font-weight: 800;
+    letter-spacing: .3px;
+    font-size: 16px;
+  }
+  .preset-btn .sets-label {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+    margin-top: 2px;
+    letter-spacing: .2px;
+  }
+  .preset-btn.active .sets-label{
+    color: var(--accent);
+  }
+
+  /* Subordinate style for log and settings elements */
+  #log, .pill, .btn-ghost{
+      box-shadow: none;
+  }
+  .pill, .btn-ghost{
+    background: var(--btn);
+    border-color: var(--pill-border);
+  }
+  #log{
+    background: var(--pill);
+    border-color: var(--pill-border);
+  }
+  .pill.active{
+    outline:3px solid rgba(47,128,255,.35);
+  }
+
+  /* Log entries are now more subtle */
+  .log-entry{
+    font-size: 14px;
+    color: var(--text);
+  }
+  .log-entry strong{
+    color: var(--text);
+  }
+  .logbox {
+    box-shadow: var(--shadow);
+  }
+  .footer-row .btn-ghost{
+    box-shadow: none;
+  }
+
+  /* Subtle pill buttons for custom/manage/settings */
+  .footer-links{
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .footer-links button{
+    font-weight: 700;
+    font-size: 14px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--btn);
+    color: var(--muted);
+    border: 1px solid var(--pill-border);
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .footer-links button:active{
+    background: var(--pill-border);
+  }
+
+  /* Modal styles */
+  .modal{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(0,0,0,.8);
+    backdrop-filter: blur(8px);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition: opacity .15s ease;
+  }
+  .modal.active{
+    opacity:1; pointer-events:auto;
+  }
+  .modal-content{
+    background:var(--card);
+    border-radius:24px;
+    width:min(90vw, 420px);
+    padding:24px;
+    box-shadow: var(--shadow);
+    transform: translateY(16px);
+    transition: transform .25s ease;
+    max-width: 420px;
+    margin: 12px;
+  }
+  .modal.active .modal-content{
+    transform: translateY(0);
+  }
+  .modal-title{
+    font-size:22px;
+    font-weight:800;
+    text-align:center;
+    margin-bottom:20px;
+    letter-spacing: .2px;
+  }
+  .modal-row{display:flex; gap:12px; margin-top:16px}
+  .modal-row .btn{flex:1}
+  .modal-input{
+    background:var(--pill);
+    border:1px solid var(--pill-border);
+    color:var(--text);
+    padding:12px 18px;
+    border-radius:14px;
+    width:100%;
+    font-size:16px;
+    font-family: inherit;
+  }
+  .modal-label{font-weight:700; margin-bottom:6px; color:var(--muted)}
+  .modal-list{
+    max-height: 240px; overflow-y:auto; margin:-12px; padding:12px;
+    border-radius:12px;
+    background:rgba(0,0,0,.04);
+  }
+  .modal-list-item{
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--card);
+    border-radius:10px;
+  }
+  .modal-list-item+.modal-list-item{margin-top:8px}
+  .modal-list-item span{font-weight:600}
+  .modal-list-item .delete-btn{
+    background:none;
+    border:none;
+    font-size:20px;
+    color:#ff6666;
+    padding:4px 8px;
+    cursor:pointer;
+  }
+  .setting-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-top:1px solid var(--pill-border);
+    font-weight:600;
+    color:var(--text);
+  }
+  .setting-row:first-child{border-top:none}
+
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+  }
+  .toggle-switch input { display:none; }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--btn);
+    border: 1px solid var(--pill-border);
+    transition: .4s;
+    border-radius: 26px;
+  }
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 2px;
+    background-color: var(--muted);
+    transition: .4s;
+    border-radius: 50%;
+  }
+  .toggle-switch input:checked + .toggle-slider {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+    background-color: white;
+  }
+
+  /* Additions for timer pulse animation */
+  @keyframes timepulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  .time .digits.pulse {
+    animation: timepulse .28s ease-out;
+  }
+
+  @media (max-width: 560px){
+    .row{gap:8px} /* Reduced gap for smaller screens */
+    .btn{padding:11px 14px}
+    .btn-subtle{padding:10px 14px}
+    .footer-links{
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+    }
+  }
+  #setRow{
+    margin-top: 40px;
+  }
+</style>
 </head>
-<body id="root" class="auto">
+<body class="auto" id="root">
   <div class="wrap">
-    <header>Workout Rest Timer</header>
-    <div class="ring-wrap">
-      <svg viewBox="0 0 100 100">
-        <g transform="rotate(-90 50 50)">
-          <circle cx="50" cy="50" r="47" stroke="#eee" stroke-width="6" fill="none"/>
-          <circle id="ring" cx="50" cy="50" r="47" stroke="#1f6eff" stroke-width="6" fill="none"
-            stroke-linecap="round" stroke-dasharray="295.31" stroke-dashoffset="0"/>
-        </g>
-      </svg>
-      <div class="time" id="digits">1:00</div>
-      <div class="status" id="status">Rest · idle</div>
-    </div>
-    <div class="row">
-      <button id="undoBtn" class="btn">⬅ Back</button>
-      <button id="minusBtn" class="btn">–15s</button>
-      <button id="startBtn" class="btn btn-primary">Start</button>
-      <button id="plusBtn" class="btn">+15s</button>
-      <button id="nextBtn" class="btn">Skip Rest ➡</button>
+    <header><div class="app-title">Workout Rest Timer</div></header>
+
+    <section class="cards">
+
+      <div class="card main">
+        <div class="ring-wrap" id="ringWrap">
+          <svg viewBox="0 0 100 100">
+            <g transform="rotate(-90 50 50)">
+              <circle class="ring-bg" cx="50" cy="50" r="47" stroke-width="6" fill="none"/>
+              <circle id="ring" class="ring" cx="50" cy="50" r="47" stroke-width="6" fill="none"
+                stroke-linecap="round" stroke-dasharray="295.31" stroke-dashoffset="0"/>
+            </g>
+          </svg>
+          <div class="time">
+            <div id="digits" class="digits">1:00</div>
+            <div id="status" class="status">Rest · idle</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button id="undoBtn" class="btn btn-ghost">Undo</button>
+          <button id="minusBtn" class="btn btn-subtle">–15s</button>
+          <button id="startBtn" class="btn btn-primary">Start</button>
+          <button id="plusBtn" class="btn btn-subtle">+15s</button>
+          <button id="nextBtn" class="btn btn-ghost">Skip</button>
+        </div>
+
+        <div class="row" id="setRow">
+          <span class="pill active" data-set="0">Set 1</span>
+          <span class="pill" data-set="1">Set 2</span>
+          <span class="pill" data-set="2">Set 3</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row grid" id="presetRow"></div>
+      </div>
+
+      <div class="card">
+        <div class="footer-row">
+          <div class="pill">Logs reset daily</div>
+          <button class="btn btn-ghost" id="clearLog">Clear</button>
+        </div>
+        <div id="log" class="logbox small">No sets yet</div>
+      </div>
+
+      <div class="card">
+        <div class="footer-links">
+          <button id="customBtn" class="pill">Custom</button>
+          <button id="manageBtn" class="pill">Manage</button>
+          <button id="settingsBtn" class="pill">Settings</button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <div id="customModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Add Custom Preset</div>
+      <label class="modal-label" for="timeInput">Time (m:ss)</label>
+      <input type="text" id="timeInput" class="modal-input" placeholder="e.g., 1:30">
+      <label class="modal-label" style="margin-top:12px" for="setsInput">Sets</label>
+      <input type="number" id="setsInput" class="modal-input" value="3">
+      <div class="modal-row">
+        <button class="btn btn-ghost close-btn">Cancel</button>
+        <button id="saveCustomBtn" class="btn btn-primary">Save</button>
+      </div>
     </div>
   </div>
-  <script>
-    // Minimal placeholder script (full timer logic omitted for brevity)
-    document.getElementById('startBtn').addEventListener('click',()=>alert('Start clicked'));
-    // Prevent double-tap zoom robustly
-    (function(){
-      let lastTouchEnd=0;
-      document.addEventListener('touchend',function(e){
-        if(e.touches.length>0) return;
-        const now=Date.now();
-        if(now-lastTouchEnd<=300){
-          if(e.target.closest('button')) e.preventDefault();
-        }
-        lastTouchEnd=now;
-      },{passive:false});
-    })();
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js').catch(console.warn);
+
+  <div id="manageModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Manage Presets</div>
+      <div id="presetList" class="modal-list"></div>
+      <div class="modal-row">
+        <button class="btn btn-primary close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Settings</div>
+      <div class="setting-row">
+        <span>Sounds & Haptics</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="soundToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <span>Notifications</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="notificationToggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <span>App Theme</span>
+        <div class="modal-row" style="margin:0">
+          <button class="btn btn-ghost" id="lightMode">Light</button>
+          <button class="btn btn-ghost" id="darkMode">Dark</button>
+          <button class="btn btn-ghost" id="autoMode">Auto</button>
+        </div>
+      </div>
+      <div class="modal-row">
+        <button class="btn btn-primary close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---------- Utilities
+  const $ = (sel, ctx=document)=>ctx.querySelector(sel);
+  const $$ = (sel, ctx=document)=>Array.from(ctx.querySelectorAll(sel));
+  const pad = n => String(n).padStart(2,'0');
+  const fmt12 = date => {
+    let h = date.getHours();
+    const m = date.getMinutes();
+    const am = h < 12 ? 'AM':'PM';
+    h = h%12; if(h===0) h=12;
+    return h + ':' + pad(m) + ' ' + am;
+  };
+
+  // Using localStorage for simplicity as requested
+  const store = {
+    get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch{ return d } },
+    set(k, v){ localStorage.setItem(k, JSON.stringify(v)) }
+  };
+
+  // ---------- Sounds (WebAudio for zero-pop beeps)
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let ctx; // Initialize on first user gesture
+  const haptics = 'vibrate' in navigator;
+  const soundToggle = $('#soundToggle');
+  const notificationToggle = $('#notificationToggle');
+
+  function initAudio() {
+    if (!ctx) {
+        ctx = new AudioCtx();
     }
-  </script>
+    return ctx.resume();
+  }
+  document.body.addEventListener('click', initAudio, { once: true });
+
+
+  function playSound(){
+    if(!soundToggle.checked || !ctx) return Promise.resolve();
+    return ctx.resume();
+  }
+  function playHaptics(){
+    if(haptics && soundToggle.checked) navigator.vibrate(200);
+  }
+  function beep(f=880, dur=0.12, vol=0.18, type='sine', delay=0){
+    if (!ctx) return;
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+  function playShort(){ playSound().then(()=>beep(1200, 0.095, 0.14, 'sine')); playHaptics(); }
+  function playEnd(){ playSound().then(()=>{ beep(880,0.12,0.16,'sine'); beep(660,0.12,0.16,'sine',0.16); }); playHaptics(); }
+
+  // ---------- Model
+  const ring = $('#ring');
+  const digits = $('#digits');
+  const statusEl = $('#status');
+  const setRow = $('#setRow');
+  const startBtn = $('#startBtn');
+  const minusBtn = $('#minusBtn');
+  const plusBtn = $('#plusBtn');
+  const nextBtn = $('#nextBtn');
+  const undoBtn = $('#undoBtn');
+  const presetRow = $('#presetRow');
+  const logEl = $('#log');
+  const clearLogBtn = $('#clearLog');
+  const customBtn = $('#customBtn');
+  const manageBtn = $('#manageBtn');
+  const settingsBtn = $('#settingsBtn');
+  const root = document.getElementById('root');
+  const customModal = $('#customModal');
+  const manageModal = $('#manageModal');
+  const settingsModal = $('#settingsModal');
+  const modals = $$('.modal');
+  const timeInput = $('#timeInput');
+  const setsInput = $('#setsInput');
+  const presetList = $('#presetList');
+
+  const appearance = store.get('appearance','auto');
+  applyAppearance(appearance);
+
+  const soundsEnabled = store.get('sounds', true);
+  if(soundsEnabled) soundToggle.checked = true;
+  else soundToggle.checked = false;
+  soundToggle.addEventListener('change',()=>store.set('sounds', soundToggle.checked));
+
+  const notificationsEnabled = store.get('notifications', true);
+  if (notificationsEnabled) notificationToggle.checked = true;
+  else notificationToggle.checked = false;
+  notificationToggle.addEventListener('change', () => store.set('notifications', notificationToggle.checked));
+
+  function applyAppearance(mode){
+    root.classList.remove('auto','light', 'dark');
+    root.classList.add(mode);
+    store.set('appearance', mode);
+  }
+
+  const defaultPresets = [
+    {id: 'p1', seconds:60, sets:3},
+    {id: 'p2', seconds:60, sets:2},
+    {id: 'p3', seconds:90, sets:3},
+    {id: 'p4', seconds:120, sets:4},
+    {id: 'p5', seconds:45, sets:3},
+    {id: 'p6', seconds:75, sets:4},
+  ];
+  const presets = store.get('presets', defaultPresets.map(p => ({...p, id: p.id || crypto.randomUUID() })));
+  let presetIndex = store.get('lastPresetIndex', 0);
+  if(presetIndex >= presets.length) presetIndex = 0;
+
+  const state = {
+    seconds: presets[presetIndex].seconds,
+    totalSets: presets[presetIndex].sets,
+    setIndex: 0,
+    status:'idle',
+    remaining: presets[presetIndex].seconds * 1000,
+    raf: null,
+    lastTs: null,
+    justWarned:false,
+    completing:false,
+    workoutLetterIndex: store.get('workoutLetterIndex', 0),
+    lastWholeSec: null,
+  };
+
+  function renderPresets(){
+    presetRow.innerHTML = '';
+    presets.forEach((p,i)=>{
+      const b = document.createElement('button');
+      b.className = 'preset-btn';
+      b.innerHTML = `<span class="time-label">${minsSec(p.seconds)}</span><span class="sets-label">×${p.sets} Sets</span>`;
+      if(i===presetIndex) b.classList.add('active');
+      b.addEventListener('click', ()=> selectPreset(i,true));
+      presetRow.appendChild(b);
+    });
+  }
+
+  function selectPreset(i, fromUser=false){
+    presetIndex = i;
+    store.set('lastPresetIndex', i);
+    const p = presets[i];
+    state.seconds = p.seconds;
+    state.totalSets = p.sets;
+    state.setIndex = 0;
+    resetTimer(true);
+    if(fromUser) updateSetPills();
+    renderPresets();
+  }
+
+  function updateSetPills(){
+    setRow.innerHTML = '';
+    for(let s=0;s<state.totalSets;s++){
+      const pill = document.createElement('span');
+      pill.className = 'pill' + (s===state.setIndex?' active':'') + (s<state.setIndex?' complete':'');
+      pill.dataset.set = s;
+      pill.textContent = 'Set ' + (s+1);
+      pill.addEventListener('click',()=>{
+        state.setIndex = s;
+        resetTimer(true);
+      });
+      setRow.appendChild(pill);
+    }
+  }
+
+  function resetTimer(hard=false){
+    state.remaining = state.seconds*1000;
+    state.status = 'idle';
+    state.justWarned = false;
+    state.completing = false;
+    cancelAnimationFrame(state.raf);
+    state.raf = null;
+    state.lastTs = null;
+    digits.textContent = formatTime(state.remaining);
+    statusEl.innerHTML = 'Rest · idle';
+    ring.style.stroke = getRingColor();
+    drawRing(1);
+    startBtn.textContent = 'Start';
+    startBtn.classList.remove('orange');
+    if(hard) updateSetPills();
+    enableControls(false);
+    state.lastWholeSec = null;
+    digits.classList.remove('pulse');
+  }
+
+  function getRingColor(){
+    if(state.remaining <= 15000) return getComputedStyle(document.documentElement).getPropertyValue('--ring-15') || '#ff8a22';
+    return getComputedStyle(document.documentElement).getPropertyValue('--ring') || '#2e7cf7';
+  }
+
+  function formatTime(ms){
+    ms = Math.max(0, ms|0);
+    let s = Math.ceil(ms/1000);
+    const m = Math.floor(s/60);
+    s = s%60;
+    return m + ':' + pad(s);
+  }
+
+  const CIRCUM = 2*Math.PI*47;
+  function drawRing(progress){
+    const offset = CIRCUM*(1-progress);
+    ring.style.strokeDasharray = CIRCUM.toFixed(2);
+    ring.style.strokeDashoffset = offset.toFixed(2);
+  }
+
+  function tick(ts){
+    if(!state.lastTs) state.lastTs = ts;
+    const delta = ts - state.lastTs;
+    state.lastTs = ts;
+    if(state.status==='running'){
+      state.remaining -= delta;
+
+      const wholeSec = Math.ceil(state.remaining / 1000);
+      if (wholeSec <= 3 && wholeSec >= 1 && wholeSec !== state.lastWholeSec) {
+        digits.classList.remove('pulse');
+        void digits.offsetWidth;
+        digits.classList.add('pulse');
+      }
+      state.lastWholeSec = wholeSec;
+
+      if(state.remaining <= 15000 && !state.justWarned){
+        state.justWarned = true;
+        ring.style.stroke = getRingColor();
+        playShort();
+      }
+      if(state.remaining <= 0){
+        completeSet();
+        return;
+      }
+      digits.textContent = formatTime(state.remaining);
+      ring.style.stroke = getRingColor();
+      drawRing(state.remaining/(state.seconds*1000));
+      statusEl.innerHTML = (state.setIndex+1 < state.totalSets) ? `Up next: <strong>Set ${state.setIndex+2}</strong>` : `Rest: <strong class="orange">Last set</strong>`;
+      state.raf = requestAnimationFrame(tick);
+    }
+  }
+
+  function completeSet(){
+    if(state.completing) return;
+    state.completing = true;
+    
+    releaseWakeLock(); // Release wakelock when set is complete
+
+    state.status = 'finished';
+    state.remaining = 0;
+    drawRing(0);
+    digits.textContent = '0:00';
+    playEnd();
+    digits.classList.remove('pulse');
+
+    let notifTitle = "Rest Complete!";
+    let notifBody = "";
+
+    if (state.setIndex < state.totalSets - 1) {
+      notifBody = `Set ${state.setIndex + 1} done. Get ready for set ${state.setIndex + 2}!`;
+    } else {
+      notifTitle = "Workout Finished!";
+      notifBody = `Great job! You completed all ${state.totalSets} sets.`;
+    }
+
+    showNotification(notifTitle, {
+        body: notifBody,
+        icon: 'resttimer-roundcap-dark.svg',
+        vibrate: [200, 100, 200],
+        tag: 'workout-timer'
+    });
+
+    if(state.setIndex < state.totalSets-1){
+      state.setIndex = Math.min(state.totalSets-1, state.setIndex + 1);
+      updateSetPills();
+      resetTimer(true);
+      setTimeout(()=>{ state.completing=false; }, 200);
+    }else{
+      const finalPill = $(`[data-set="${state.setIndex}"]`);
+      if(finalPill) finalPill.classList.add('complete');
+
+      startBtn.textContent = 'Finish workout';
+      startBtn.classList.add('orange');
+      enableControls(false);
+      setTimeout(()=>{ state.completing=false; }, 200);
+    }
+  }
+
+  function start(){
+    if(state.status==='running') return;
+    initAudio();
+    requestNotificationPermission();
+    requestWakeLock();
+    startBtn.textContent = 'Pause';
+    startBtn.classList.remove('orange');
+    nextBtn.textContent = 'Next';
+    state.status='running';
+    enableControls(true);
+    state.lastTs=null;
+    ring.style.stroke = getRingColor();
+    state.raf = requestAnimationFrame(tick);
+  }
+  function pause(){
+    releaseWakeLock();
+    state.status='paused';
+    startBtn.textContent='Resume';
+    enableControls(true);
+    digits.classList.remove('pulse');
+  }
+  function toggleStart(){
+    if(state.status==='idle' || state.status==='paused'){
+      start();
+    }else if(state.status==='running'){
+      pause();
+    }else if(state.status==='finished'){
+      logWorkout();
+      state.setIndex = 0;
+      updateSetPills();
+      resetTimer();
+      releaseWakeLock();
+    }
+  }
+
+  function next(){
+    if(state.setIndex < state.totalSets-1){
+      state.setIndex++;
+      updateSetPills();
+      resetTimer();
+    }
+  }
+  function undo(){
+    if(state.setIndex>0){
+      state.setIndex--;
+      updateSetPills();
+      resetTimer();
+    }
+  }
+  function nudger(delta){
+    const cap = state.seconds*1000;
+    state.remaining = Math.min(cap, Math.max(0, (state.remaining|0)+delta));
+    digits.textContent = formatTime(state.remaining);
+    ring.style.stroke = getRingColor();
+    drawRing(state.remaining/cap);
+  }
+  function enableControls(on){
+    minusBtn.disabled = !on;
+    plusBtn.disabled = !on;
+    const isRunning = state.status === 'running';
+    minusBtn.classList.toggle('hidden', !isRunning);
+    plusBtn.classList.toggle('hidden', !isRunning);
+    nextBtn.classList.toggle('hidden', !isRunning);
+    undoBtn.classList.toggle('hidden', !isRunning);
+  }
+
+  function todaysKey(){
+    const d = new Date();
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
+  function loadLog(){
+    const key = 'log-'+todaysKey();
+    return store.get(key, []);
+  }
+  function saveLog(items){
+    const key = 'log-'+todaysKey();
+    store.set(key, items);
+  }
+  function renderLog(){
+    const items = loadLog();
+    if(!items.length){ logEl.innerHTML='No sets yet'; return; }
+    logEl.innerHTML = items.map(i => 
+      `<div class="log-entry">Workout ${i.letter}: ${minsSec(i.seconds)} ×${i.sets} — ${i.time}</div>`
+    ).join('');
+  }
+  function logWorkout(){
+    const items = loadLog();
+    const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const letter = letters[state.workoutLetterIndex % letters.length];
+    state.workoutLetterIndex++;
+    store.set('workoutLetterIndex', state.workoutLetterIndex);
+    const p = presets[presetIndex];
+    items.push({letter, seconds:p.seconds, sets:p.sets, time: fmt12(new Date())});
+    saveLog(items);
+    renderLog();
+  }
+  function minsSec(sec){
+    const m = Math.floor(sec/60);
+    const s = sec%60;
+    return m + ':' + pad(s);
+  }
+
+  // ---------- Modal Logic
+  function openModal(modal){
+    modals.forEach(m => m.classList.remove('active'));
+    modal.classList.add('active');
+  }
+
+  function closeModal(modal){
+    modal.classList.remove('active');
+  }
+
+  customBtn.addEventListener('click', ()=>{
+    timeInput.value = '';
+    setsInput.value = '3';
+    openModal(customModal);
+  });
+  $('#saveCustomBtn').addEventListener('click', ()=>{
+    const v = timeInput.value;
+    const m = v.match(/^\s*(\d+):(\d{1,2})\s*$/);
+    const sets = parseInt(setsInput.value, 10);
+    if(!m || isNaN(sets) || sets <= 0) {
+      alert('Invalid format. Please use "m:ss" for time and a number for sets.');
+      return;
+    }
+    const seconds = (+m[1])*60 + (+m[2]);
+    presets.unshift({id: crypto.randomUUID(), seconds, sets});
+    store.set('presets', presets);
+    renderPresets();
+    selectPreset(0,true);
+    closeModal(customModal);
+  });
+
+  manageBtn.addEventListener('click', ()=>{
+    presetList.innerHTML = presets.map((p,i)=>`
+      <div class="modal-list-item">
+        <span>${minsSec(p.seconds)} ×${p.sets}</span>
+        <button class="delete-btn" data-index="${i}">&times;</button>
+      </div>
+    `).join('');
+    openModal(manageModal);
+  });
+  presetList.addEventListener('click', (e)=>{
+    if(e.target.classList.contains('delete-btn')){
+      const i = parseInt(e.target.dataset.index, 10);
+      presets.splice(i,1);
+      store.set('presets', presets);
+      if (presetIndex >= i) {
+        presetIndex = Math.max(0, presetIndex - 1);
+      }
+      renderPresets();
+      selectPreset(presetIndex, true);
+      presetList.innerHTML = presets.map((p,i)=>`
+        <div class="modal-list-item">
+          <span>${minsSec(p.seconds)} ×${p.sets}</span>
+          <button class="delete-btn" data-index="${i}">&times;</button>
+        </div>
+      `).join('');
+    }
+  });
+
+  settingsBtn.addEventListener('click', ()=>{
+    openModal(settingsModal);
+  });
+  $('#lightMode').addEventListener('click', ()=> applyAppearance('light'));
+  $('#darkMode').addEventListener('click', ()=> applyAppearance('dark'));
+  $('#autoMode').addEventListener('click', ()=> applyAppearance('auto'));
+
+  $$('.close-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      closeModal(e.target.closest('.modal'));
+    });
+  });
+
+  startBtn.addEventListener('click', toggleStart);
+  nextBtn.addEventListener('click', next);
+  undoBtn.addEventListener('click', undo);
+  minusBtn.addEventListener('click', ()=> nudger(-15000));
+  plusBtn.addEventListener('click', ()=> nudger(15000));
+  clearLogBtn.addEventListener('click', ()=>{
+    saveLog([]); renderLog();
+    store.set('workoutLetterIndex', 0);
+    state.workoutLetterIndex = 0;
+  });
+
+  renderPresets();
+  selectPreset(presetIndex);
+  renderLog();
+
+  setInterval(()=>{
+    if(!isFinite(state.remaining)) resetTimer();
+    if(!digits.textContent || digits.textContent.includes('NaN')) digits.textContent = formatTime(state.remaining);
+  },500);
+
+  // ---------- Notifications & Background Timer
+  let notificationPermission = ('Notification' in window) ? Notification.permission : 'denied';
+
+  function requestNotificationPermission() {
+      if (!notificationToggle.checked) return;
+      if ('Notification' in window && notificationPermission === 'default') {
+          Notification.requestPermission().then(permission => {
+              notificationPermission = permission;
+          });
+      }
+  }
+
+  function showNotification(title, options) {
+      if (!notificationToggle.checked) return;
+      if ('Notification' in window && notificationPermission === 'granted') {
+          new Notification(title, options);
+      }
+  }
+
+  let backgroundTimeout = null;
+  let hiddenAt = null;
+
+  function handleVisibilityChange() {
+      if (document.hidden) {
+          if (state.status === 'running') {
+              cancelAnimationFrame(state.raf);
+              state.raf = null;
+              hiddenAt = Date.now();
+              backgroundTimeout = setTimeout(() => {
+                  completeSet();
+              }, state.remaining);
+          }
+      } else {
+          if (hiddenAt) {
+              clearTimeout(backgroundTimeout);
+              backgroundTimeout = null;
+              const elapsed = Date.now() - hiddenAt;
+              hiddenAt = null;
+              
+              if (state.status === 'running') {
+                  state.remaining -= elapsed;
+                  state.lastTs = null;
+                  if (state.remaining <= 0) {
+                      completeSet();
+                  } else {
+                      state.raf = requestAnimationFrame(tick);
+                  }
+              }
+          }
+      }
+  }
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  let screenWakeLock = null;
+  async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+          try {
+              screenWakeLock = await navigator.wakeLock.request('screen');
+          } catch (e) { console.log('WakeLock unavailable', e); }
+      }
+  }
+  async function releaseWakeLock() {
+      if (screenWakeLock) {
+          await screenWakeLock.release();
+          screenWakeLock = null;
+      }
+  }
+
+})();
+</script>
 </body>
 </html>
