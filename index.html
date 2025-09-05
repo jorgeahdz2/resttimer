@@ -1,16 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<!-- Double-tap zoom fix, while preserving pinch-to-zoom -->
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<!-- Added meta tags to prevent caching -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Workout Rest Timer</title>
-<!-- PWA Manifest & Icons -->
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
@@ -74,7 +70,6 @@
     background: radial-gradient(1200px 500px at 50% -200px, rgba(255,255,255,.06), transparent 60%) , var(--bg);
     color:var(--text);
     font: 16px/1.45 system-ui, -apple-system, "SF Pro Text", Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    /* Prevent font size adjustments on iOS */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -121,7 +116,6 @@
     color: var(--ring-15);
   }
 
-  /* Restored generic row (fixes set pills spacing & alignment) */
   .row{
     display:flex; 
     gap:12px; 
@@ -131,7 +125,6 @@
     width:100%;
   }
 
-  /* Main controls row with a little inner padding for breathing room */
   .controls-row {
     display:flex; 
     gap:12px; 
@@ -154,7 +147,6 @@
     cursor:pointer; user-select:none;
     transition: transform .03s ease, background .15s ease, border-color .15s ease, color .15s ease;
     white-space: nowrap;
-    /* Prevent accidental double-tap zoom */
     touch-action: manipulation;
     display: flex;
     align-items: center;
@@ -183,14 +175,13 @@
   .btn-ghost, .btn-subtle {
     flex-shrink: 0;
   }
-  .btn-ghost { /* keep your original min width */
+  .btn-ghost { 
     min-width: 100px;
   }
   .btn-ghost{background:var(--pill); border-color:var(--pill-border)}
   .btn-subtle{background:none; border-color:var(--pill-border); color:var(--text); box-shadow:none; padding:13px 18px}
   .btn-subtle:active{background:var(--pill); transform: none}
 
-  /* Icon styling */
   .btn svg {
     width: 16px;
     height: 16px;
@@ -215,7 +206,6 @@
   .hidden{display:none !important}
   .center{display:flex; align-items:center; justify-content:center}
 
-  /* Compact Preset Buttons */
   .preset-btn {
     display: flex;
     flex-direction: column;
@@ -234,7 +224,6 @@
   }
   .preset-btn:active{transform: scale(0.98);}
 
-  /* Consistent active preset pill */
   .preset-btn.active{
     background: rgba(47,128,255,.1);
     color: var(--accent);
@@ -259,7 +248,6 @@
     color: var(--accent);
   }
 
-  /* Subordinate style for log and settings elements */
   #log, .pill, .btn-ghost{
       box-shadow: none;
   }
@@ -275,7 +263,6 @@
     outline:3px solid rgba(47,128,255,.35);
   }
 
-  /* Log entries are now more subtle */
   .log-entry{
     font-size: 14px;
     color: var(--text);
@@ -290,7 +277,6 @@
     box-shadow: none;
   }
 
-  /* Subtle pill buttons for custom/manage/settings */
   .footer-links{
     display: flex;
     gap: 12px;
@@ -312,7 +298,6 @@
     background: var(--pill-border);
   }
 
-  /* Modal styles */
   .modal{
     position:fixed; inset:0; z-index:100;
     background:rgba(0,0,0,.8);
@@ -389,7 +374,6 @@
   }
   .setting-row:first-child{border-top:none}
 
-  /* Toggle Switch */
   .toggle-switch {
     position: relative;
     display: inline-block;
@@ -428,8 +412,30 @@
     transform: translateX(20px);
     background-color: white;
   }
+  
+  /* Summary Modal Styles */
+  .summary-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    margin: 24px 0;
+  }
+  .summary-stats div {
+    display: flex;
+    flex-direction: column;
+  }
+  .summary-stats .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .summary-stats .stat-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 4px;
+  }
 
-  /* Additions for timer pulse animation */
   @keyframes timepulse {
     0% { transform: scale(1); }
     40% { transform: scale(1.025); }
@@ -440,7 +446,7 @@
   }
 
   @media (max-width: 560px){
-    .controls-row{gap:8px} /* Reduced gap for smaller screens */
+    .controls-row{gap:8px} 
     .btn{padding:11px 14px}
     .btn-subtle{padding:10px 14px}
     .footer-links{
@@ -478,20 +484,19 @@
         <div class="controls-row">
           <button id="backBtn" class="btn btn-ghost">
             <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-            Back
+              Back
           </button>
           <button id="minusBtn" class="btn btn-subtle">–15s</button>
           <button id="startBtn" class="btn btn-primary">Start</button>
           <button id="plusBtn" class="btn btn-subtle">+15s</button>
           <button id="skipBtn" class="btn btn-ghost">
-            Skip
+            Skip 
             <svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
           </button>
         </div>
 
         <div class="row" id="setRow">
-          <!-- Set pills will be generated here -->
-        </div>
+          </div>
       </div>
 
       <div class="card">
@@ -571,6 +576,25 @@
       </div>
     </div>
   </div>
+  
+  <div id="summaryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Workout Complete!</div>
+      <div class="summary-stats">
+        <div>
+          <span id="summarySets" class="stat-value">3/3</span>
+          <span class="stat-label">Sets</span>
+        </div>
+        <div>
+          <span id="summaryTime" class="stat-value">4:30</span>
+          <span class="stat-label">Total Rest</span>
+        </div>
+      </div>
+      <div class="modal-row">
+        <button id="summaryDoneBtn" class="btn btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 (function(){
@@ -643,12 +667,12 @@
   const root = $('#root');
 
   // ---------- App State & Data
-  const state = {
-    seconds: 0,
-    totalSets: 0,
+  let state = {
+    seconds: 60,
+    totalSets: 3,
     setIndex: 0,
     status:'idle', // idle, running, paused, finished
-    remaining: 0,
+    remaining: 60000,
     raf: null,
     lastTs: null,
     justWarned: false,
@@ -657,13 +681,34 @@
     lastWholeSec: null,
     actualRestTime: 0,
     nudgeInterval: null,
+    workoutLogData: [],
   };
   
+  let wakeLock = null;
+  const requestWakeLock = async () => {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    }
+  };
+  const releaseWakeLock = () => {
+    if (wakeLock) {
+      wakeLock.release()
+        .then(() => {
+          wakeLock = null;
+        })
+        .catch(console.error);
+    }
+  };
+
   const appearance = store.get('appearance','auto');
   applyAppearance(appearance);
   soundToggle.checked = store.get('sounds', true);
   notificationToggle.checked = store.get('notifications', true);
-
+  
   const defaultPresets = [
     {id: 'p1', seconds:60, sets:3}, {id: 'p2', seconds:60, sets:2},
     {id: 'p3', seconds:90, sets:3}, {id: 'p4', seconds:120, sets:4},
@@ -672,7 +717,7 @@
   let presets = store.get('presets', defaultPresets.map(p => ({...p, id: p.id || crypto.randomUUID() })));
   let presetIndex = store.get('lastPresetIndex', 0);
   if(presetIndex >= presets.length) presetIndex = 0;
-
+  
   // ---------- Core Functions
   function renderPresets(){
     presetRow.innerHTML = presets.map((p,i) => `
@@ -690,7 +735,7 @@
     state.seconds = p.seconds;
     state.totalSets = p.sets;
     state.setIndex = 0;
-    resetTimer(true);
+    resetTimer(true); 
     if(fromUser) updateSetPills();
     renderPresets();
   }
@@ -702,8 +747,18 @@
       </span>
     `).join('');
   }
+  
+  function updateUIFromState() {
+      digits.textContent = formatTime(state.remaining);
+      drawRing(state.remaining / (state.seconds * 1000));
+      updateSetPills();
+      updateControls();
+  }
 
   function resetTimer(hard=false){
+    if (hard) {
+      state.workoutLogData = [];
+    }
     state.remaining = state.seconds * 1000;
     state.status = 'idle';
     state.justWarned = false;
@@ -719,6 +774,7 @@
     updateControls();
     state.lastWholeSec = null;
     digits.classList.remove('pulse');
+    releaseWakeLock();
   }
 
   function formatTime(ms){
@@ -734,7 +790,7 @@
     const s = sec%60;
     return `${m}:${pad(s)}`;
   }
-  
+
   const CIRCUM = 2 * Math.PI * 47;
   function drawRing(progress){
     const offset = CIRCUM * (1 - progress);
@@ -763,16 +819,15 @@
         state.justWarned = true;
         playShort();
       }
-      
+
       if(state.remaining <= 0){
         completeSet();
         return;
       }
-      
+
       digits.textContent = formatTime(state.remaining);
       ring.style.stroke = getRingColor();
       drawRing(state.remaining / (state.seconds * 1000));
-      updateControls();
     }
     state.raf = requestAnimationFrame(tick);
   }
@@ -781,19 +836,23 @@
     if(state.completing) return;
     state.completing = true;
     releaseWakeLock();
-
-    state.status = 'idle'; // Temporarily idle to allow next set to start
+    state.status = 'idle';
     state.remaining = 0;
     drawRing(0);
     digits.textContent = '0:00';
     playEnd();
-    
+
+    if (state.actualRestTime > 1000) {
+      state.workoutLogData.push({ actualTime: state.actualRestTime });
+    }
+    digits.classList.remove('pulse');
+
     let notifTitle = "Rest Complete!";
-    let notifBody = (state.setIndex < state.totalSets - 1) 
+    let notifBody = (state.setIndex < state.totalSets - 1)
       ? `Set ${state.setIndex + 1} done. Get ready for set ${state.setIndex + 2}!`
       : `Great job! You completed all ${state.totalSets} sets.`;
     if(state.setIndex >= state.totalSets - 1) notifTitle = "Workout Finished!";
-    
+
     showNotification(notifTitle, { body: notifBody, tag: 'workout-timer' });
 
     if(state.setIndex < state.totalSets - 1){
@@ -805,10 +864,11 @@
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if(finalPill) finalPill.classList.add('complete');
       updateControls();
+      releaseWakeLock();
     }
     setTimeout(() => { state.completing = false; }, 200);
   }
-  
+
   function updateControls() {
     const isRunning = state.status === 'running';
     const isPaused = state.status === 'paused';
@@ -816,9 +876,23 @@
     const isFirstSet = state.setIndex === 0;
     const isLastSet = state.setIndex === state.totalSets - 1;
 
-    // Start/Pause/Resume Button
+    const backBtnText = backBtn.childNodes[1];
+    const skipBtnText = skipBtn.childNodes[0]; 
+    const timerActive = isRunning || isPaused;
+    
+    if (backBtnText && backBtnText.nodeType === 3) {
+      backBtnText.nodeValue = timerActive ? ' ' : ' Back';
+    }
+    if (skipBtnText && skipBtnText.nodeType === 3) {
+      if (isLastSet && timerActive) {
+          skipBtnText.nodeValue = 'Finish ';
+      } else {
+          skipBtnText.nodeValue = timerActive ? ' ' : ' Skip ';
+      }
+    }
+    
     if (isFinished) {
-      startBtn.textContent = 'Finish';      // simplified
+      startBtn.textContent = 'Finish';
       startBtn.classList.add('orange');
     } else if (isRunning) {
       startBtn.textContent = 'Pause';
@@ -831,22 +905,10 @@
       startBtn.classList.remove('orange');
     }
 
-    // Nudge Buttons Visibility
     minusBtn.classList.toggle('hidden', !(isRunning || isPaused));
     plusBtn.classList.toggle('hidden', !(isRunning || isPaused));
-
-    // Back Button
     backBtn.disabled = isFirstSet && !isFinished;
-    
-    // Skip Button Label
-    const skipBtnText = skipBtn.childNodes[0];
-    if (isLastSet && (isRunning || isPaused)) {
-        skipBtnText.nodeValue = 'Finish ';  // simplified
-    } else {
-        skipBtnText.nodeValue = 'Skip ';    // simplified
-    }
-    
-    // Status Text
+
     if (isRunning) {
         statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
     } else {
@@ -855,13 +917,13 @@
   }
 
   function toggleStart(){
-    if (state.status === 'idle' || state.status === 'paused') start();
-    else if (state.status === 'running') pause();
-    else if (state.status === 'finished') {
-        logWorkout(); // Log the workout when the "Finish" button is pressed
-        state.setIndex = 0;
-        updateSetPills();
-        resetTimer();
+    if (state.status === 'idle' || state.status === 'paused') {
+        start();
+    } else if (state.status === 'running') {
+        pause();
+    } else if (state.status === 'finished') {
+        logFinishedWorkout();
+        showSummaryModal();
     }
   }
 
@@ -872,6 +934,7 @@
     requestWakeLock();
     state.status='running';
     state.lastTs=null;
+    if (state.raf) cancelAnimationFrame(state.raf);
     state.raf = requestAnimationFrame(tick);
     updateControls();
   }
@@ -886,6 +949,9 @@
   }
 
   function skip(){
+    if (state.actualRestTime > 1000) {
+      state.workoutLogData.push({ actualTime: state.actualRestTime });
+    }
     if (state.setIndex < state.totalSets - 1) {
       state.setIndex++;
       updateSetPills();
@@ -905,7 +971,7 @@
   function back(){
     if (state.status === 'finished') {
         state.status = 'idle';
-        updateSetPills(); // Removes 'complete' from last pill
+        updateSetPills();
     } else if(state.setIndex > 0){
         state.setIndex--;
         updateSetPills();
@@ -915,14 +981,14 @@
 
   function nudger(delta){
     state.remaining = Math.max(0, (state.remaining|0) + delta);
-    if(state.status !== 'running') { // if paused or idle
+    if(state.status !== 'running') {
         state.seconds = Math.round(state.remaining / 1000);
     }
     digits.textContent = formatTime(state.remaining);
     ring.style.stroke = getRingColor();
     drawRing(state.remaining / (state.seconds * 1000));
   }
-  
+
   function getRingColor(){
     if(state.remaining <= 15000) return getComputedStyle(document.documentElement).getPropertyValue('--ring-15') || '#ff8a22';
     return getComputedStyle(document.documentElement).getPropertyValue('--ring') || '#2e7cf7';
@@ -933,236 +999,207 @@
     const d = new Date();
     return `log-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
-  
   function loadLog(){ return store.get(todaysKey(), []); }
   function saveLog(items){ store.set(todaysKey(), items); }
-  
   function renderLog(){
     const items = loadLog();
-    logEl.innerHTML = !items.length ? 'No sets yet' 
-      : items.map(i => `<div class="log-entry">Workout ${i.letter}: ${minsSec(Math.round(i.actualTime/1000))} ×${i.sets} — ${i.time}</div>`).join('');
+    logEl.innerHTML = !items.length ? 'No sets yet'
+      : items.map(i => `<div class="log-entry">Workout ${i.letter}: ${i.setsCompleted}/${i.targetSets} sets, rest ${minsSec(Math.round(i.totalActualTime/1000))} — ${i.time}</div>`).join('');
   }
-
-  function logWorkout(){
-    if (state.actualRestTime < 1000) return; // Don't log empty sets
+  function logFinishedWorkout() {
+    if (state.workoutLogData.length < 1) return;
     const items = loadLog();
     const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const letter = letters[state.workoutLetterIndex % letters.length];
-    
     const p = presets[presetIndex];
+    const totalActualTime = state.workoutLogData.reduce((sum, set) => sum + set.actualTime, 0);
+    const setsCompleted = state.workoutLogData.length;
     items.push({
-      letter, 
-      seconds: p.seconds, 
-      sets: p.sets, 
+      letter,
+      targetSets: p.sets,
+      setsCompleted: setsCompleted,
       time: fmt12(new Date()),
-      actualTime: state.actualRestTime
+      totalActualTime: totalActualTime
     });
-
     saveLog(items);
     renderLog();
-    
-    // Only increment letter index if it's a new workout session (e.g., last set completed)
-    if (state.setIndex >= state.totalSets - 1) {
-        state.workoutLetterIndex++;
-        store.set('workoutLetterIndex', state.workoutLetterIndex);
+    state.workoutLetterIndex++;
+    store.set('workoutLetterIndex', state.workoutLetterIndex);
+  }
+  
+  // ---------- State Persistence
+  function saveState() {
+    const stateToSave = {
+      setIndex: state.setIndex,
+      status: state.status,
+      remaining: state.remaining,
+      workoutLogData: state.workoutLogData,
+      lastPresetIndex: presetIndex,
+    };
+    store.set('appState', stateToSave);
+  }
+
+  function loadState() {
+    const savedState = store.get('appState');
+    if (savedState) {
+        const p = presets[savedState.lastPresetIndex];
+        state.seconds = p.seconds;
+        state.totalSets = p.sets;
+        state.setIndex = savedState.setIndex || 0;
+        state.status = savedState.status || 'idle';
+        state.remaining = savedState.remaining || state.seconds * 1000;
+        state.workoutLogData = savedState.workoutLogData || [];
+        presetIndex = savedState.lastPresetIndex || 0;
+
+        if (state.status === 'running') {
+            start();
+        } else {
+            updateUIFromState();
+        }
+    } else {
+        selectPreset(presetIndex);
     }
   }
+  
+  window.addEventListener('pagehide', saveState);
 
   // ---------- Settings & Modals
   function applyAppearance(mode){
     root.className = mode;
     store.set('appearance', mode);
   }
-
   function openModal(modal){
     $$('.modal').forEach(m => m.classList.remove('active'));
     modal.classList.add('active');
   }
   function closeModal(modal){ modal.classList.remove('active'); }
+  
+  // NEW: Summary Modal Logic
+  function showSummaryModal() {
+    const totalActualTime = state.workoutLogData.reduce((sum, set) => sum + set.actualTime, 0);
+    $('#summarySets').textContent = `${state.workoutLogData.length}/${state.totalSets}`;
+    $('#summaryTime').textContent = minsSec(Math.round(totalActualTime/1000));
+    openModal($('#summaryModal'));
+  }
+  
+  $('#summaryDoneBtn').addEventListener('click', () => {
+    closeModal($('#summaryModal'));
+    state.setIndex = 0;
+    updateSetPills();
+    resetTimer(true); // Hard reset
+  });
 
   // ---------- Event Listeners
   presetRow.addEventListener('click', (e)=>{
     const btn = e.target.closest('.preset-btn');
-    if(btn) selectPreset(parseInt(btn.dataset.index, 10), true);
+    if(btn){
+      const index = parseInt(btn.dataset.index, 10);
+      selectPreset(index, true);
+    }
   });
-  
+
+  setRow.addEventListener('click', (e) => {
+      const pill = e.target.closest('.pill');
+      if (pill) {
+          const index = parseInt(pill.dataset.set, 10);
+          if (index < state.setIndex) {
+              state.setIndex = index;
+              resetTimer();
+          }
+      }
+  });
+
   startBtn.addEventListener('click', toggleStart);
+  minusBtn.addEventListener('click', () => nudger(-15000));
+  plusBtn.addEventListener('click', () => nudger(15000));
   skipBtn.addEventListener('click', skip);
   backBtn.addEventListener('click', back);
-  
-  function handleNudge(delta, start) {
-      if (start) {
-          nudger(delta);
-          state.nudgeInterval = setInterval(() => nudger(delta), 150);
-      } else {
-          clearInterval(state.nudgeInterval);
-      }
-  }
+  $('#clearLog').addEventListener('click', () => {
+    saveLog([]);
+    renderLog();
+  });
 
-  minusBtn.addEventListener('mousedown', () => handleNudge(-15000, true));
-  plusBtn.addEventListener('mousedown', () => handleNudge(15000, true));
-  minusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(-15000, true); });
-  plusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(15000, true); });
-  document.addEventListener('mouseup', () => handleNudge(0, false));
-  document.addEventListener('touchend', () => handleNudge(0, false));
-
-  document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT') return;
-    if (e.code === 'Space') { e.preventDefault(); toggleStart(); }
-    if (e.code === 'ArrowRight') { e.preventDefault(); skip(); }
-    if (e.code === 'ArrowLeft') { e.preventDefault(); back(); }
-    if (e.key === '+') { e.preventDefault(); nudger(15000); }
-    if (e.key === '-') { e.preventDefault(); nudger(-15000); }
-  });
-  
-  $('#clearLog').addEventListener('click', ()=>{
-    saveLog([]); renderLog();
-    store.set('workoutLetterIndex', 0);
-    state.workoutLetterIndex = 0;
-  });
-  
-  // Settings listeners
-  soundToggle.addEventListener('change',()=>store.set('sounds', soundToggle.checked));
-  notificationToggle.addEventListener('change', () => store.set('notifications', notificationToggle.checked));
-  $('#lightMode').addEventListener('click', ()=> applyAppearance('light'));
-  $('#darkMode').addEventListener('click', ()=> applyAppearance('dark'));
-  $('#autoMode').addEventListener('click', ()=> applyAppearance('auto'));
-  
-  // Modal listeners
-  $('#customBtn').addEventListener('click', ()=>{
-    $('#timeInput').value = '';
-    $('#setsInput').value = '3';
-    openModal($('#customModal'));
-  });
-  $('#manageBtn').addEventListener('click', ()=>{
-    renderManageList();
+  // Modal event listeners
+  $('#customBtn').addEventListener('click', () => openModal($('#customModal')));
+  $('#manageBtn').addEventListener('click', () => {
+    renderPresetList();
     openModal($('#manageModal'));
   });
-  $('#settingsBtn').addEventListener('click', ()=> openModal($('#settingsModal')));
-  $$('.close-btn').forEach(b => b.addEventListener('click', e => closeModal(e.target.closest('.modal'))));
+  $('#settingsBtn').addEventListener('click', () => openModal($('#settingsModal')));
+  $$('.close-btn').forEach(btn => btn.addEventListener('click', (e) => closeModal(e.target.closest('.modal'))));
 
-  $('#saveCustomBtn').addEventListener('click', ()=>{
-    const timeInput = $('#timeInput');
-    const setsInput = $('#setsInput');
-    const m = timeInput.value.match(/^\s*(\d+):([0-5]\d)\s*$/);
-    const sets = parseInt(setsInput.value, 10);
-    if(!m || isNaN(sets) || sets <= 0) {
-      alert('Invalid format. Please use "m:ss" for time and a number > 0 for sets.');
-      return;
+  // Settings Toggles
+  soundToggle.addEventListener('change', (e) => store.set('sounds', e.target.checked));
+  notificationToggle.addEventListener('change', (e) => store.set('notifications', e.target.checked));
+
+  // Theme buttons
+  $('#lightMode').addEventListener('click', () => applyAppearance('light'));
+  $('#darkMode').addEventListener('click', () => applyAppearance('dark'));
+  $('#autoMode').addEventListener('click', () => applyAppearance('auto'));
+
+  // Custom Preset Logic
+  function parseTimeInput(input){
+    const parts = input.split(':').map(Number);
+    if(parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])){
+      return parts[0] * 60 + parts[1];
     }
-    const seconds = (+m[1])*60 + (+m[2]);
-    presets.unshift({id: crypto.randomUUID(), seconds, sets});
-    store.set('presets', presets);
-    renderPresets();
-    selectPreset(0,true);
-    closeModal($('#customModal'));
+    return null;
+  }
+  $('#saveCustomBtn').addEventListener('click', () => {
+    const timeStr = $('#timeInput').value.trim();
+    const sets = parseInt($('#setsInput').value, 10);
+    const seconds = parseTimeInput(timeStr);
+    
+    if (seconds !== null && seconds > 0 && sets > 0) {
+      presets.push({ id: crypto.randomUUID(), seconds, sets });
+      store.set('presets', presets);
+      selectPreset(presets.length - 1);
+      closeModal($('#customModal'));
+    } else {
+      console.error('Invalid input. Time must be in m:ss format and sets must be a positive number.');
+    }
   });
-  
-  function renderManageList() {
-      const canDelete = presets.length > 1;
-      $('#presetList').innerHTML = presets.map((p,i)=>`
+
+  // Manage Presets Logic
+  function renderPresetList() {
+    $('#presetList').innerHTML = presets.map((p, i) => `
       <div class="modal-list-item">
-        <span>${minsSec(p.seconds)} ×${p.sets}</span>
-        ${canDelete ? `<button class="delete-btn" data-index="${i}">&times;</button>` : ''}
+        <span>${minsSec(p.seconds)} for ${p.sets} sets</span>
+        <button class="delete-btn" data-id="${p.id}">×</button>
       </div>
     `).join('');
   }
-
-  $('#presetList').addEventListener('click', (e)=>{
-    if(e.target.classList.contains('delete-btn')){
-      if (presets.length <= 1) {
-          alert("You must have at least one preset.");
-          return;
-      }
-      const i = parseInt(e.target.dataset.index, 10);
-      presets.splice(i,1);
+  $('#presetList').addEventListener('click', (e) => {
+    const btn = e.target.closest('.delete-btn');
+    if (btn) {
+      const idToDelete = btn.dataset.id;
+      presets = presets.filter(p => p.id !== idToDelete);
       store.set('presets', presets);
-      if (presetIndex >= i) {
-        presetIndex = Math.max(0, presetIndex - 1);
-      }
-      renderPresets();
-      selectPreset(presetIndex, true);
-      renderManageList();
+      renderPresetList();
+      selectPreset(0); // Select the first preset after deletion
     }
   });
 
-  // ---------- Notifications & Background Handling
-  let notificationPermission = ('Notification' in window) ? Notification.permission : 'denied';
-
+  // Notification Permission
   function requestNotificationPermission() {
-      if (!notificationToggle.checked) return;
-      if ('Notification' in window && notificationPermission === 'default') {
-          Notification.requestPermission().then(p => { notificationPermission = p; });
-      }
+    if ('Notification' in window && notificationToggle.checked) {
+      Notification.requestPermission();
+    }
   }
 
   function showNotification(title, options) {
-      if (!notificationToggle.checked || !('Notification' in window) || notificationPermission !== 'granted') return;
-      navigator.serviceWorker.getRegistration().then(reg => {
-          if (reg) reg.showNotification(title, { ...options, icon: 'apple-touch-icon.png', vibrate: [200, 100, 200] });
-      });
-  }
-
-  let hiddenAt = null;
-  document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-          if (state.status === 'running') {
-              hiddenAt = Date.now();
-              cancelAnimationFrame(state.raf);
-              state.raf = null;
-          }
-      } else {
-          if (hiddenAt) {
-              const elapsed = Date.now() - hiddenAt;
-              hiddenAt = null;
-              if (state.status === 'running') {
-                  state.remaining -= elapsed;
-                  state.actualRestTime += elapsed;
-                  state.lastTs = null;
-                  if (state.remaining <= 0) {
-                      completeSet();
-                  } else {
-                      state.raf = requestAnimationFrame(tick);
-                  }
-              }
-          }
-          requestWakeLock(); // Re-acquire wake lock on visibility
-      }
-  });
-
-  // ---------- Screen Wake Lock
-  let screenWakeLock = null;
-  async function requestWakeLock() {
-      if ('wakeLock' in navigator) {
-          try {
-              screenWakeLock = await navigator.wakeLock.request('screen');
-              screenWakeLock.addEventListener('release', () => {
-                  // If timer is running, re-request lock
-                  if (state.status === 'running') requestWakeLock();
-              });
-          } catch (e) { /* WakeLock unavailable */ }
-      }
-  }
-  async function releaseWakeLock() {
-      if (screenWakeLock) {
-          await screenWakeLock.release();
-          screenWakeLock = null;
-      }
-  }
-
-  // ---------- Initial Setup
-  selectPreset(presetIndex);
-  renderLog();
-
-})();
-</script>
-<!-- Service Worker Registration -->
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
-        });
+    if ('Notification' in window && notificationToggle.checked && Notification.permission === 'granted') {
+      new Notification(title, options);
     }
+  }
+
+  // Initial render
+  renderPresets();
+  updateSetPills();
+  updateControls();
+  renderLog();
+  loadState();
+})();
 </script>
 </body>
 </html>
