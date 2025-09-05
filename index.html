@@ -438,29 +438,6 @@
     background-color: white;
   }
   
-  /* Summary Modal Styles */
-  .summary-stats {
-    display: flex;
-    justify-content: space-around;
-    text-align: center;
-    margin: 24px 0;
-  }
-  .summary-stats div {
-    display: flex;
-    flex-direction: column;
-  }
-  .summary-stats .stat-value {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .summary-stats .stat-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
   @keyframes timepulse {
     0% { transform: scale(1); }
     40% { transform: scale(1.025); }
@@ -551,6 +528,14 @@
   
   .manage-presets-row .delete-btn:hover {
     color: #ff6666;
+  }
+  
+  .success {
+      color: var(--accent);
+  }
+  
+  .error {
+      color: #ff6666;
   }
 </style>
 </head>
@@ -670,22 +655,13 @@
       </div>
     </div>
   </div>
-  
-  <div id="summaryModal" class="modal">
+
+  <div id="messageModal" class="modal">
     <div class="modal-content">
-      <div class="modal-title">Workout Complete!</div>
-      <div class="summary-stats">
-        <div>
-          <span id="summarySets" class="stat-value">3/3</span>
-          <span class="stat-label">Sets</span>
-        </div>
-        <div>
-          <span id="summaryTime" class="stat-value">4:30</span>
-          <span class="stat-label">Total Rest</span>
-        </div>
-      </div>
+      <div class="modal-title" id="messageTitle"></div>
+      <p class="text-center" id="messageText"></p>
       <div class="modal-row">
-        <button id="summaryDoneBtn" class="btn btn-primary">Done</button>
+        <button class="btn btn-primary close-btn">Close</button>
       </div>
     </div>
   </div>
@@ -853,6 +829,7 @@
   function resetTimer(hard=false){
     if (hard) {
         state.workoutLogData = [];
+        state.setIndex = 0;
     }
     state.remaining = state.seconds * 1000;
     state.status = 'idle';
@@ -865,7 +842,7 @@
     digits.textContent = formatTime(state.remaining);
     progressCircle.style.stroke = getRingColor();
     drawRing(1);
-    if(hard) updateSetPills();
+    updateSetPills();
     updateControls();
     state.lastWholeSec = null;
     digits.classList.remove('pulse');
@@ -930,37 +907,42 @@
     if(state.completing) return;
     state.completing = true;
     releaseWakeLock();
-    state.status = 'idle';
-    state.remaining = 0;
-    drawRing(0);
-    digits.textContent = '0:00';
-    playEnd();
+    state.status = 'idle'; // Temporarily set to idle to stop the loop
+    cancelAnimationFrame(state.raf);
+    state.raf = null;
 
     if (state.actualRestTime > 1000) {
       state.workoutLogData.push({ actualTime: state.actualRestTime });
     }
     digits.classList.remove('pulse');
 
-    let notifTitle = "Rest Complete!";
-    let notifBody = (state.setIndex < state.totalSets - 1)
-      ? `Set ${state.setIndex + 1} done. Get ready for set ${state.setIndex + 2}!`
-      : `Great job! You completed all ${state.totalSets} sets.`;
-    if(state.setIndex >= state.totalSets - 1) notifTitle = "Workout Finished!";
+    playEnd();
+    
+    // Check if this is the final set of the workout
+    if(state.setIndex >= state.totalSets - 1){
+      // If it's the last set, transition to 'finished' state
+      state.status = 'finished';
+      state.remaining = 0;
+      drawRing(0);
+      digits.textContent = '0:00';
+      const finalPill = $(`[data-set="${state.setIndex}"]`);
+      if(finalPill) finalPill.classList.add('complete');
 
-    showNotification(notifTitle, { body: notifBody, tag: 'workout-timer' });
-
-    if(state.setIndex < state.totalSets - 1){
+      let notifTitle = "Workout Finished!";
+      let notifBody = `Great job! You completed all ${state.totalSets} sets.`;
+      showNotification(notifTitle, { body: notifBody, tag: 'workout-timer' });
+    } else {
+      // If there are more sets, move to the next set
       state.setIndex++;
       updateSetPills();
       resetTimer();
-    } else {
-      state.status = 'finished';
-      const finalPill = $(`[data-set="${state.setIndex}"]`);
-      if(finalPill) finalPill.classList.add('complete');
-      updateControls();
-      showSummaryModal();
-      releaseWakeLock();
+
+      let notifTitle = "Rest Complete!";
+      let notifBody = `Set ${state.setIndex} done. Get ready for set ${state.setIndex + 1}!`;
+      showNotification(notifTitle, { body: notifBody, tag: 'workout-timer' });
     }
+
+    updateControls(); // Update UI to reflect the new state
     setTimeout(() => { state.completing = false; }, 200);
   }
 
@@ -976,9 +958,9 @@
     controlsRow.classList.remove('idle', 'running', 'paused', 'finished');
     controlsRow.classList.add(state.status);
 
-    // Show/hide +15/-15 buttons
-    minusBtn.classList.toggle('hidden', isIdle && isFirstSet || isFinished);
-    plusBtn.classList.toggle('hidden', isIdle && isFirstSet || isFinished);
+    // Show/hide +15/-15 buttons based on the current set index
+    minusBtn.classList.toggle('hidden', isFinished || state.setIndex < 1);
+    plusBtn.classList.toggle('hidden', isFinished || state.setIndex < 1);
 
     // Update main button text
     if (isFinished) {
@@ -1010,7 +992,10 @@
 
     if (isRunning) {
         statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
-    } else {
+    } else if (isFinished) {
+        statusEl.innerHTML = `Workout <strong>Finished!</strong>`;
+    }
+    else {
         statusEl.innerHTML = 'Rest · ' + state.status;
     }
   }
@@ -1022,7 +1007,7 @@
         pause();
     } else if (state.status === 'finished') {
         logFinishedWorkout();
-        showSummaryModal();
+        resetTimer(true);
     }
   }
 
@@ -1048,15 +1033,20 @@
   }
 
   function skip(){
-    if(state.status === 'finished') return; // Do not skip when finished
+    if (state.status === 'finished') {
+        return;
+    }
     if (state.actualRestTime > 1000) {
       state.workoutLogData.push({ actualTime: state.actualRestTime });
     }
+    // Check if this is the last set
     if (state.setIndex < state.totalSets - 1) {
       state.setIndex++;
       updateSetPills();
       resetTimer();
     } else {
+      // If it's the last set, just set the status to finished
+      // The user will click 'Finish' to log and reset
       state.status = 'finished';
       state.remaining = 0;
       drawRing(0);
@@ -1064,8 +1054,6 @@
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if(finalPill) finalPill.classList.add('complete');
       updateControls();
-      showSummaryModal();
-      releaseWakeLock();
     }
   }
 
@@ -1180,41 +1168,15 @@
   }
   function closeModal(modal){ modal.classList.remove('active'); }
   
-  // NEW: Summary Modal Logic
-  function showSummaryModal() {
-    const totalActualTime = state.workoutLogData.reduce((sum, set) => sum + set.actualTime, 0);
-    $('#summarySets').textContent = `${state.workoutLogData.length}/${state.totalSets}`;
-    $('#summaryTime').textContent = minsSec(Math.round(totalActualTime/1000));
-    openModal($('#summaryModal'));
+  // NEW: Message Modal Logic (Replaces Error Modal)
+  function showMessageModal(title, message, isError = false) {
+    const modal = $('#messageModal');
+    $('#messageTitle').textContent = title;
+    $('#messageText').textContent = message;
+    $('#messageText').className = isError ? 'error' : 'success';
+    openModal(modal);
   }
   
-  $('#summaryDoneBtn').addEventListener('click', () => {
-    closeModal($('#summaryModal'));
-    state.setIndex = 0;
-    updateSetPills();
-    resetTimer(true); // Hard reset
-  });
-
-  // NEW: Error Modal
-  function showErrorModal(message) {
-    const errorModal = document.createElement('div');
-    errorModal.className = 'modal active';
-    errorModal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-title">Error</div>
-        <p class="text-center">${message}</p>
-        <div class="modal-row">
-          <button class="btn btn-primary close-btn">Close</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(errorModal);
-    errorModal.querySelector('.close-btn').addEventListener('click', () => {
-        closeModal(errorModal);
-        errorModal.remove();
-    });
-  }
-
   // ---------- Event Listeners
   presetRow.addEventListener('click', (e)=>{
     const btn = e.target.closest('.preset-btn');
@@ -1282,7 +1244,7 @@
     
     const timeParts = timeVal.match(/^(\d{1,2}):(\d{1,2})$/);
     if (!timeParts || isNaN(setsVal) || setsVal < 1) {
-      showErrorModal("Invalid input. Please use 'm:ss' format for time and enter a valid number of sets.");
+      showMessageModal("Invalid Input", "Please use 'm:ss' format for time and enter a valid number of sets.", true);
       return;
     }
     
@@ -1290,13 +1252,13 @@
     const seconds = parseInt(timeParts[2], 10);
     
     if (seconds >= 60) {
-      showErrorModal("Seconds must be less than 60.");
+      showMessageModal("Invalid Time", "Seconds must be less than 60.", true);
       return;
     }
     
     const totalSeconds = (minutes * 60) + seconds;
     if (totalSeconds < 1) {
-        showErrorModal("Total time must be at least 1 second.");
+        showMessageModal("Invalid Time", "Total time must be at least 1 second.", true);
         return;
     }
     
@@ -1310,7 +1272,7 @@
     store.set('presets', presets);
     renderPresets();
     closeModal($('#customModal'));
-    showErrorModal('Custom preset saved!');
+    showMessageModal("Success!", "Custom preset saved!", false);
   });
 
 
