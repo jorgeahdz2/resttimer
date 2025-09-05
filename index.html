@@ -133,6 +133,7 @@
     align-items:center; 
     width: 100%;
     padding: 0 8px;
+    margin-bottom: 24px; /* Added spacing to prevent clipping */
   }
 
   .btn{
@@ -504,19 +505,38 @@
     .controls-row .btn-ghost svg {
         display: block;
     }
-
+    
     /* Explicitly make set pills visible on small screens */
     #setRow {
       display: flex;
       justify-content: center;
-      flex-wrap: wrap;
       gap: 10px;
       margin-top: 20px;
+      overflow-x: auto;
+      white-space: nowrap;
+      flex-wrap: nowrap;
+      padding-bottom: 12px;
     }
   }
 
   #setRow{
-    margin-top: 40px;
+    margin-top: 24px; /* Adjusted to prevent clipping */
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 12px;
+  }
+
+  #setRow::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  #setRow::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #setRow::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
   }
   
   /* Manage Presets specific styles */
@@ -545,6 +565,60 @@
   
   .error {
       color: #ff6666;
+  }
+
+  /* Dial Styles */
+  .dial-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    gap: 16px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .dial {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dial-label {
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .dial-display {
+    background: var(--btn);
+    border: 1px solid var(--pill-border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 800;
+    width: 80px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .dial-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .dial-buttons button {
+    background: var(--btn);
+    border: 1px solid var(--pill-border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform .03s ease, background .15s ease;
+    box-shadow: var(--shadow);
+    line-height: 1;
+  }
+  .dial-buttons button:active {
+    transform: scale(0.95);
   }
 </style>
 </head>
@@ -615,10 +689,32 @@
   <div id="customModal" class="modal">
     <div class="modal-content">
       <div class="modal-title">Add Custom Preset</div>
-      <label class="modal-label" for="timeInput">Time (m:ss)</label>
-      <input type="text" id="timeInput" class="modal-input" placeholder="e.g., 1:30">
-      <label class="modal-label" style="margin-top:12px" for="setsInput">Sets</label>
-      <input type="number" id="setsInput" class="modal-input" value="3" min="1">
+      <div class="dial-container">
+        <div class="dial">
+          <div class="dial-label">Minutes</div>
+          <div class="dial-display" id="minutesDisplay">0</div>
+          <div class="dial-buttons">
+            <button class="up-btn">+</button>
+            <button class="down-btn">-</button>
+          </div>
+        </div>
+        <div class="dial">
+          <div class="dial-label">Seconds</div>
+          <div class="dial-display" id="secondsDisplay">00</div>
+          <div class="dial-buttons">
+            <button class="up-btn">+</button>
+            <button class="down-btn">-</button>
+          </div>
+        </div>
+        <div class="dial">
+          <div class="dial-label">Sets</div>
+          <div class="dial-display" id="setsDisplay">3</div>
+          <div class="dial-buttons">
+            <button class="up-btn">+</button>
+            <button class="down-btn">-</button>
+          </div>
+        </div>
+      </div>
       <div class="modal-row">
         <button class="btn btn-ghost close-btn">Cancel</button>
         <button id="saveCustomBtn" class="btn btn-primary">Save</button>
@@ -844,6 +940,13 @@
   let presetIndex = store.get('lastPresetIndex', 0);
   if (presetIndex >= presets.length) presetIndex = 0;
 
+  // New state for custom preset dials
+  let customState = {
+      minutes: 1,
+      seconds: 30,
+      sets: 3,
+  };
+
   // Initialize Firebase
   async function initializeFirebase() {
     try {
@@ -952,10 +1055,8 @@
       try {
         const presetDocRef = doc(db, 'artifacts', appId, 'users', userId, 'presets', id);
         await deleteDoc(presetDocRef);
-        showMessageModal("Success!", "Preset deleted successfully.");
       } catch (e) {
         console.error("Error deleting preset from Firestore: ", e);
-        showMessageModal("Error", "Failed to delete preset from the cloud. It is removed locally.", true);
       }
     }
   }
@@ -1353,6 +1454,8 @@
     $$('.modal').forEach(m => m.classList.remove('active'));
     if (modal.id === 'manageModal') {
       renderManagePresets();
+    } else if (modal.id === 'customModal') {
+        updateCustomDialDisplay();
     }
     modal.classList.add('active');
   }
@@ -1367,6 +1470,39 @@
     $('#messageText').textContent = message;
     $('#messageText').className = isError ? 'error' : 'success';
     openModal(modal);
+  }
+
+  // --- Custom Modal Dial Logic
+  const minutesDisplay = $('#minutesDisplay');
+  const secondsDisplay = $('#secondsDisplay');
+  const setsDisplay = $('#setsDisplay');
+
+  function updateCustomDialDisplay() {
+      minutesDisplay.textContent = customState.minutes;
+      secondsDisplay.textContent = pad(customState.seconds);
+      setsDisplay.textContent = customState.sets;
+  }
+
+  function handleDialChange(type, value) {
+      if (type === 'minutes') {
+          customState.minutes = Math.max(0, customState.minutes + value);
+      } else if (type === 'seconds') {
+          customState.seconds = customState.seconds + value;
+          if (customState.seconds >= 60) {
+              customState.seconds = 0;
+              customState.minutes++;
+          } else if (customState.seconds < 0) {
+              if (customState.minutes > 0) {
+                  customState.seconds = 45;
+                  customState.minutes--;
+              } else {
+                  customState.seconds = 0;
+              }
+          }
+      } else if (type === 'sets') {
+          customState.sets = Math.max(1, customState.sets + value);
+      }
+      updateCustomDialDisplay();
   }
 
   // ---------- Event Listeners
@@ -1464,26 +1600,32 @@
     }
   });
 
+  $('#customModal').addEventListener('click', (e) => {
+      const upBtn = e.target.closest('.up-btn');
+      const downBtn = e.target.closest('.down-btn');
+      if (upBtn || downBtn) {
+          const dial = e.target.closest('.dial');
+          if (dial) {
+              const type = dial.querySelector('.dial-label').textContent.toLowerCase().trim();
+              const value = upBtn ? 1 : -1;
+              if (type === 'minutes') {
+                  handleDialChange('minutes', value);
+              } else if (type === 'sets') {
+                  handleDialChange('sets', value);
+              } else if (type === 'seconds') {
+                  handleDialChange('seconds', value * 15);
+              }
+          }
+      }
+  });
+
+
   $('#saveCustomBtn').addEventListener('click', async () => {
-    const timeVal = $('#timeInput').value.trim();
-    const setsVal = parseInt($('#setsInput').value, 10);
+    const totalSeconds = (customState.minutes * 60) + customState.seconds;
+    const setsVal = customState.sets;
 
-    const timeParts = timeVal.match(/^(\d{1,2}):(\d{1,2})$/);
-    if (!timeParts || isNaN(setsVal) || setsVal < 1) {
-      showMessageModal("Invalid Input", "Please use 'm:ss' format for time and enter a valid number of sets.", true);
-      return;
-    }
-
-    const minutes = parseInt(timeParts[1], 10);
-    const seconds = parseInt(timeParts[2], 10);
-
-    if (seconds >= 60) {
-      showMessageModal("Invalid Time", "Seconds must be less than 60.", true);
-      return;
-    }
-
-    const totalSeconds = (minutes * 60) + seconds;
     if (totalSeconds < 1) {
+      // Still show an error message for invalid time, but not a success message
       showMessageModal("Invalid Time", "Total time must be at least 1 second.", true);
       return;
     }
@@ -1500,7 +1642,6 @@
         newPreset.id = newDocRef.id;
       } catch (e) {
         console.error("Error saving preset to Firestore: ", e);
-        showMessageModal("Error", "Failed to save preset to the cloud. It is saved locally.", true);
         newPreset.id = crypto.randomUUID();
       }
     } else {
@@ -1511,7 +1652,6 @@
     store.set('presets', presets);
     renderPresets();
     closeModal($('#customModal'));
-    showMessageModal("Success!", "Custom preset saved!", false);
   });
 
   // --- Wake Lock API
