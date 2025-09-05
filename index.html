@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -786,8 +787,6 @@
     drawRing(0);
     digits.textContent = '0:00';
     playEnd();
-    logWorkout();
-    digits.classList.remove('pulse');
     
     let notifTitle = "Rest Complete!";
     let notifBody = (state.setIndex < state.totalSets - 1) 
@@ -859,6 +858,7 @@
     if (state.status === 'idle' || state.status === 'paused') start();
     else if (state.status === 'running') pause();
     else if (state.status === 'finished') {
+        logWorkout(); // Log the workout when the "Finish" button is pressed
         state.setIndex = 0;
         updateSetPills();
         resetTimer();
@@ -887,12 +887,10 @@
 
   function skip(){
     if (state.setIndex < state.totalSets - 1) {
-      logWorkout();
       state.setIndex++;
       updateSetPills();
       resetTimer();
     } else {
-      logWorkout();
       state.status = 'finished';
       state.remaining = 0;
       drawRing(0);
