@@ -507,6 +507,20 @@
     #settingsModal .modal-row .btn .btn-text {
       display: inline-block;
     }
+    
+    /* Ensure back/skip text is shown when idle */
+    .controls-row.idle .btn-ghost, .controls-row.finished .btn-ghost {
+        font-size: 14px;
+        min-width: unset;
+        flex-grow: 1;
+        padding: 11px 14px;
+    }
+    .controls-row.idle .btn-ghost .btn-text, .controls-row.finished .btn-ghost .btn-text {
+        display: inline-block;
+    }
+    .controls-row.idle .btn-ghost svg, .controls-row.finished .btn-ghost svg {
+        display: none;
+    }
   }
 
   #setRow{
@@ -740,6 +754,7 @@
   const logEl = $('#log');
   const root = $('#root');
   const progressCircle = $('#ring');
+  const controlsRow = $('.controls-row');
 
   // ---------- App State & Data
   let state = {
@@ -949,6 +964,10 @@
     const isLastSet = state.setIndex === state.totalSets - 1;
     const isIdle = state.status === 'idle';
     
+    // Add status class to controls row for CSS
+    controlsRow.classList.remove('idle', 'running', 'paused', 'finished');
+    controlsRow.classList.add(state.status);
+
     // Show/hide +15/-15 buttons
     minusBtn.classList.toggle('hidden', isIdle);
     plusBtn.classList.toggle('hidden', isIdle);
@@ -975,7 +994,7 @@
     const backSvg = $('#backBtn svg');
     
     // Hide text on small screens when not idle
-    if (window.innerWidth <= 560 && !isIdle) {
+    if (window.innerWidth <= 560 && !isIdle && !isFinished) {
       backBtnText.style.display = 'none';
       skipBtnText.style.display = 'none';
       backSvg.style.display = 'block';
