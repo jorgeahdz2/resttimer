@@ -504,6 +504,15 @@
     .controls-row .btn-ghost svg {
         display: block;
     }
+
+    /* Explicitly make set pills visible on small screens */
+    #setRow {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
   }
 
   #setRow{
@@ -845,10 +854,16 @@
         setupAuthListener();
       } else {
         console.log('Firebase config not provided. Running in a limited mode without data persistence.');
+        // Still load and render initial state for local storage
+        loadState();
+        renderPresets();
       }
     } catch (e) {
       console.error("Firebase initialization failed:", e);
       console.log("Running in a limited mode without data persistence.");
+      // Fallback to local storage if Firebase fails
+      loadState();
+      renderPresets();
     }
   }
 
@@ -892,9 +907,10 @@
       if (firestorePresets.length > 0) {
         presets = firestorePresets;
         store.set('presets', presets);
-        selectPreset(presetIndex);
-        renderPresets();
       }
+      // Regardless of Firestore success, re-select preset and render
+      selectPreset(presetIndex);
+      renderPresets();
     } catch (e) {
       console.error("Error loading presets from Firestore: ", e);
       // Fallback to local storage presets if Firestore fails
