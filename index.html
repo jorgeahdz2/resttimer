@@ -386,10 +386,6 @@
     gap: 16px;
   }
   .setting-row:first-child{border-top:none}
-  .setting-row .modal-row {
-    margin-top: 0;
-  }
-  
   .setting-row.buttons {
     display: flex;
     flex-direction: column;
@@ -518,36 +514,17 @@
       display: inline-block;
     }
     
-    /* Ensure back/skip text is shown when idle */
-    .controls-row.idle .btn-ghost, .controls-row.finished .btn-ghost {
-        font-size: 14px;
-        min-width: unset;
-        flex-grow: 0; 
-        padding: 11px 14px;
-    }
-    .controls-row.idle .btn-ghost .btn-text, .controls-row.finished .btn-ghost .btn-text {
-        display: inline-block;
-    }
-    .controls-row.idle .btn-ghost svg, .controls-row.finished .btn-ghost svg {
-        display: none;
-    }
-    
-    /* Make the back/skip buttons show only icons on mobile during a workout */
-    .controls-row.running .btn-ghost, 
-    .controls-row.paused .btn-ghost {
+    /* Always use icons for Back/Skip on small screens */
+    .controls-row .btn-ghost {
         min-width: unset;
         flex-grow: 0;
         font-size: 0;
         padding: 11px 8px;
     }
-    
-    .controls-row.running .btn-ghost .btn-text, 
-    .controls-row.paused .btn-ghost .btn-text {
+    .controls-row .btn-ghost .btn-text {
         display: none;
     }
-    
-    .controls-row.running .btn-ghost svg, 
-    .controls-row.paused .btn-ghost svg {
+    .controls-row .btn-ghost svg {
         display: block;
     }
   }
@@ -981,6 +958,8 @@
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if(finalPill) finalPill.classList.add('complete');
       updateControls();
+      showSummaryModal();
+      releaseWakeLock();
     }
     setTimeout(() => { state.completing = false; }, 200);
   }
@@ -998,8 +977,8 @@
     controlsRow.classList.add(state.status);
 
     // Show/hide +15/-15 buttons
-    minusBtn.classList.toggle('hidden', isIdle || isFinished);
-    plusBtn.classList.toggle('hidden', isIdle || isFinished);
+    minusBtn.classList.toggle('hidden', isIdle && isFirstSet || isFinished);
+    plusBtn.classList.toggle('hidden', isIdle && isFirstSet || isFinished);
 
     // Update main button text
     if (isFinished) {
@@ -1069,6 +1048,7 @@
   }
 
   function skip(){
+    if(state.status === 'finished') return; // Do not skip when finished
     if (state.actualRestTime > 1000) {
       state.workoutLogData.push({ actualTime: state.actualRestTime });
     }
@@ -1084,6 +1064,7 @@
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if(finalPill) finalPill.classList.add('complete');
       updateControls();
+      showSummaryModal();
       releaseWakeLock();
     }
   }
