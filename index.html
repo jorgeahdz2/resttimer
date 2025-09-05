@@ -132,7 +132,7 @@
     justify-content:center; 
     align-items:center; 
     width: 100%;
-    padding: 0 8px; /* Buffer margin */
+    padding: 0 8px;
   }
 
   .btn{
@@ -367,12 +367,32 @@
     cursor:pointer;
   }
   .setting-row{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 0; border-top:1px solid var(--pill-border);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-top:1px solid var(--pill-border);
     font-weight:600;
     color:var(--text);
+    gap: 16px;
   }
   .setting-row:first-child{border-top:none}
+  .setting-row .modal-row {
+    margin-top: 0;
+  }
+  
+  .setting-row.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 0;
+  }
+  
+  .setting-row.buttons .modal-row {
+    width: 100%;
+    padding-top: 8px;
+    margin-top: 0;
+  }
 
   .toggle-switch {
     position: relative;
@@ -455,18 +475,52 @@
       gap: 8px;
     }
     .btn-ghost {
-      padding: 11px 8px; /* Reduce padding for smaller screens */
-      min-width: unset; /* Allow it to shrink */
+      padding: 11px 8px;
+      min-width: unset;
       flex-grow: 1;
-      font-size: 0; /* Hide text on smaller screens */
+      font-size: 0;
+    }
+    .btn-ghost .btn-text{
+      display: none;
     }
     .btn-ghost svg {
       width: 20px;
       height: 20px;
     }
+    
+    /* Make the clear button visible on mobile */
+    .footer-row .btn-ghost {
+      font-size: 14px;
+      min-width: unset;
+      flex-grow: 0;
+    }
+    .footer-row .btn-ghost .btn-text {
+      display: inline-block;
+    }
   }
+
   #setRow{
     margin-top: 40px;
+  }
+  
+  /* Manage Presets specific styles */
+  .manage-presets-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .manage-presets-row .delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 20px;
+  }
+  
+  .manage-presets-row .delete-btn:hover {
+    color: #ff6666;
   }
 </style>
 </head>
@@ -573,9 +627,9 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <div class="setting-row">
+      <div class="setting-row buttons">
         <span>App Theme</span>
-        <div class="modal-row" style="margin:0">
+        <div class="modal-row">
           <button class="btn btn-ghost" id="lightMode">Light</button>
           <button class="btn btn-ghost" id="darkMode">Dark</button>
           <button class="btn btn-ghost" id="autoMode">Auto</button>
@@ -717,6 +771,25 @@
         <span class="sets-label">×${p.sets} Sets</span>
       </button>
     `).join('');
+  }
+  
+  function renderManagePresets(){
+    const presetListEl = $('#presetList');
+    presetListEl.innerHTML = presets.map(p => `
+      <div class="modal-list-item manage-presets-row" data-id="${p.id}">
+        <span>${minsSec(p.seconds)} ×${p.sets} Sets</span>
+        <button class="delete-btn">&times;</button>
+      </div>
+    `).join('');
+  }
+
+  function deletePreset(id){
+    presets = presets.filter(p => p.id !== id);
+    store.set('presets', presets);
+    if(presetIndex >= presets.length) presetIndex = 0;
+    selectPreset(presetIndex);
+    renderPresets();
+    renderManagePresets();
   }
 
   function selectPreset(i, fromUser=false){
@@ -864,13 +937,12 @@
     const isFinished = state.status === 'finished';
     const isFirstSet = state.setIndex === 0;
     const isLastSet = state.setIndex === state.totalSets - 1;
+    
+    // Show/hide +15/-15 buttons
+    minusBtn.classList.toggle('hidden', state.status === 'idle');
+    plusBtn.classList.toggle('hidden', state.status === 'idle');
 
-    const backBtnText = $('#backBtn .btn-text');
-    const skipBtnText = $('#skipBtn .btn-text'); 
-    
-    backBtnText.textContent = 'Back';
-    skipBtnText.textContent = isLastSet && (isRunning || isPaused) ? 'Finish' : 'Skip';
-    
+    // Update main button text
     if (isFinished) {
       startBtn.textContent = 'Finish';
       startBtn.classList.add('orange');
@@ -885,22 +957,39 @@
       startBtn.classList.remove('orange');
     }
 
-    minusBtn.classList.toggle('hidden', !(isRunning || isPaused));
-    plusBtn.classList.toggle('hidden', !(isRunning || isPaused));
-    backBtn.disabled = isFirstSet && !isFinished;
+    // Update Back/Skip buttons
+    const backBtnText = $('#backBtn .btn-text');
+    const skipBtnText = $('#skipBtn .btn-text');
+    const skipSvg = $('#skipBtn svg');
+    const backSvg = $('#backBtn svg');
+    
+    // Hide text on small screens, show icons
+    if (window.innerWidth <= 560 && (isRunning || isPaused)) {
+      backBtnText.style.display = 'none';
+      skipBtnText.style.display = 'none';
+      backSvg.style.display = 'block';
+      skipSvg.style.display = 'block';
+    } else {
+      backBtnText.style.display = 'inline-block';
+      skipBtnText.style.display = 'inline-block';
+      backSvg.style.display = 'block';
+      skipSvg.style.display = 'block';
+    }
+    
+    skipBtnText.textContent = isLastSet && (isRunning || isPaused) ? 'Finish' : 'Skip';
+    backBtn.disabled = isFirstSet && state.status !== 'finished';
+    
+    // Toggle the checkmark SVG
+    if (isLastSet && (isRunning || isPaused)) {
+      skipSvg.innerHTML = `<path d="M9 16.2l-3.5-3.5L4 14.2l5 5L20 9l-1.4-1.4L9 16.2z"/>`;
+    } else {
+      skipSvg.innerHTML = `<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>`;
+    }
 
     if (isRunning) {
         statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
     } else {
         statusEl.innerHTML = 'Rest · ' + state.status;
-    }
-    
-    // Toggle the checkmark SVG
-    const skipSvg = $('#skipBtn svg');
-    if (isLastSet && (isRunning || isPaused)) {
-      skipSvg.innerHTML = `<path d="M9 16.2l-3.5-3.5L4 14.2l5 5L20 9l-1.4-1.4L9 16.2z"/>`;
-    } else {
-      skipSvg.innerHTML = `<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>`;
     }
   }
 
@@ -1055,9 +1144,14 @@
   function applyAppearance(mode){
     root.className = mode;
     store.set('appearance', mode);
+    $$('#settingsModal .btn-ghost').forEach(btn => btn.classList.remove('active'));
+    $(`#${mode}Mode`).classList.add('active');
   }
   function openModal(modal){
     $$('.modal').forEach(m => m.classList.remove('active'));
+    if(modal.id === 'manageModal'){
+      renderManagePresets();
+    }
     modal.classList.add('active');
   }
   function closeModal(modal){ modal.classList.remove('active'); }
@@ -1147,6 +1241,15 @@
   $('#settingsBtn').addEventListener('click', ()=>openModal($('#settingsModal')));
   $$('.close-btn').forEach(b=>b.addEventListener('click', (e)=>closeModal(e.target.closest('.modal'))));
   $$('.modal').forEach(m=>m.addEventListener('click', (e)=>{ if(e.target === m) closeModal(m); }));
+
+  $('#presetList').addEventListener('click', (e) => {
+    const deleteBtn = e.target.closest('.delete-btn');
+    if (deleteBtn) {
+        const item = deleteBtn.closest('.modal-list-item');
+        const id = item.dataset.id;
+        deletePreset(id);
+    }
+  });
   
   // NEW: Custom Preset Validation
   $('#saveCustomBtn').addEventListener('click', () => {
@@ -1222,6 +1325,13 @@
   renderPresets();
   renderLog();
   loadState();
+
+  // Handle initial active state for theme buttons
+  const savedAppearance = store.get('appearance', 'auto');
+  $(`#${savedAppearance}Mode`).classList.add('active');
+  
+  // Update controls on window resize
+  window.addEventListener('resize', updateControls);
 
 })();
 </script>
