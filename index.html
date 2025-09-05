@@ -454,6 +454,16 @@
       justify-content: space-between;
       gap: 8px;
     }
+    .btn-ghost {
+      padding: 11px 8px; /* Reduce padding for smaller screens */
+      min-width: unset; /* Allow it to shrink */
+      flex-grow: 1;
+      font-size: 0; /* Hide text on smaller screens */
+    }
+    .btn-ghost svg {
+      width: 20px;
+      height: 20px;
+    }
   }
   #setRow{
     margin-top: 40px;
@@ -484,13 +494,13 @@
         <div class="controls-row">
           <button id="backBtn" class="btn btn-ghost">
             <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-              Back
+             <span class="btn-text">Back</span>
           </button>
           <button id="minusBtn" class="btn btn-subtle">–15s</button>
           <button id="startBtn" class="btn btn-primary">Start</button>
           <button id="plusBtn" class="btn btn-subtle">+15s</button>
           <button id="skipBtn" class="btn btn-ghost">
-            Skip 
+            <span class="btn-text">Skip</span>
             <svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
           </button>
         </div>
@@ -595,7 +605,7 @@
       </div>
     </div>
   </div>
-
+  
 <script>
 (function(){
   // ---------- Utilities
@@ -665,6 +675,7 @@
   const presetRow = $('#presetRow');
   const logEl = $('#log');
   const root = $('#root');
+  const progressCircle = $('#ring');
 
   // ---------- App State & Data
   let state = {
@@ -683,32 +694,12 @@
     nudgeInterval: null,
     workoutLogData: [],
   };
-  
-  let wakeLock = null;
-  const requestWakeLock = async () => {
-    if ('wakeLock' in navigator) {
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-      } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
-      }
-    }
-  };
-  const releaseWakeLock = () => {
-    if (wakeLock) {
-      wakeLock.release()
-        .then(() => {
-          wakeLock = null;
-        })
-        .catch(console.error);
-    }
-  };
 
   const appearance = store.get('appearance','auto');
   applyAppearance(appearance);
   soundToggle.checked = store.get('sounds', true);
   notificationToggle.checked = store.get('notifications', true);
-  
+
   const defaultPresets = [
     {id: 'p1', seconds:60, sets:3}, {id: 'p2', seconds:60, sets:2},
     {id: 'p3', seconds:90, sets:3}, {id: 'p4', seconds:120, sets:4},
@@ -757,7 +748,7 @@
 
   function resetTimer(hard=false){
     if (hard) {
-      state.workoutLogData = [];
+        state.workoutLogData = [];
     }
     state.remaining = state.seconds * 1000;
     state.status = 'idle';
@@ -768,13 +759,12 @@
     state.raf = null;
     state.lastTs = null;
     digits.textContent = formatTime(state.remaining);
-    ring.style.stroke = getRingColor();
+    progressCircle.style.stroke = getRingColor();
     drawRing(1);
     if(hard) updateSetPills();
     updateControls();
     state.lastWholeSec = null;
     digits.classList.remove('pulse');
-    releaseWakeLock();
   }
 
   function formatTime(ms){
@@ -864,7 +854,6 @@
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if(finalPill) finalPill.classList.add('complete');
       updateControls();
-      releaseWakeLock();
     }
     setTimeout(() => { state.completing = false; }, 200);
   }
@@ -876,20 +865,11 @@
     const isFirstSet = state.setIndex === 0;
     const isLastSet = state.setIndex === state.totalSets - 1;
 
-    const backBtnText = backBtn.childNodes[1];
-    const skipBtnText = skipBtn.childNodes[0]; 
-    const timerActive = isRunning || isPaused;
+    const backBtnText = $('#backBtn .btn-text');
+    const skipBtnText = $('#skipBtn .btn-text'); 
     
-    if (backBtnText && backBtnText.nodeType === 3) {
-      backBtnText.nodeValue = timerActive ? ' ' : ' Back';
-    }
-    if (skipBtnText && skipBtnText.nodeType === 3) {
-      if (isLastSet && timerActive) {
-          skipBtnText.nodeValue = 'Finish ';
-      } else {
-          skipBtnText.nodeValue = timerActive ? ' ' : ' Skip ';
-      }
-    }
+    backBtnText.textContent = 'Back';
+    skipBtnText.textContent = isLastSet && (isRunning || isPaused) ? 'Finish' : 'Skip';
     
     if (isFinished) {
       startBtn.textContent = 'Finish';
@@ -913,6 +893,14 @@
         statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
     } else {
         statusEl.innerHTML = 'Rest · ' + state.status;
+    }
+    
+    // Toggle the checkmark SVG
+    const skipSvg = $('#skipBtn svg');
+    if (isLastSet && (isRunning || isPaused)) {
+      skipSvg.innerHTML = `<path d="M9 16.2l-3.5-3.5L4 14.2l5 5L20 9l-1.4-1.4L9 16.2z"/>`;
+    } else {
+      skipSvg.innerHTML = `<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>`;
     }
   }
 
@@ -1027,7 +1015,7 @@
     store.set('workoutLetterIndex', state.workoutLetterIndex);
   }
   
-  // ---------- State Persistence
+  // ---------- NEW: State Persistence
   function saveState() {
     const stateToSave = {
       setIndex: state.setIndex,
@@ -1089,116 +1077,152 @@
     resetTimer(true); // Hard reset
   });
 
+  // NEW: Error Modal
+  function showErrorModal(message) {
+    const errorModal = document.createElement('div');
+    errorModal.className = 'modal active';
+    errorModal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-title">Error</div>
+        <p class="text-center">${message}</p>
+        <div class="modal-row">
+          <button class="btn btn-primary close-btn">Close</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(errorModal);
+    errorModal.querySelector('.close-btn').addEventListener('click', () => {
+        closeModal(errorModal);
+        errorModal.remove();
+    });
+  }
+
   // ---------- Event Listeners
   presetRow.addEventListener('click', (e)=>{
     const btn = e.target.closest('.preset-btn');
-    if(btn){
-      const index = parseInt(btn.dataset.index, 10);
-      selectPreset(index, true);
-    }
+    if(btn) selectPreset(parseInt(btn.dataset.index, 10), true);
   });
-
-  setRow.addEventListener('click', (e) => {
-      const pill = e.target.closest('.pill');
-      if (pill) {
-          const index = parseInt(pill.dataset.set, 10);
-          if (index < state.setIndex) {
-              state.setIndex = index;
-              resetTimer();
-          }
-      }
-  });
-
   startBtn.addEventListener('click', toggleStart);
-  minusBtn.addEventListener('click', () => nudger(-15000));
-  plusBtn.addEventListener('click', () => nudger(15000));
   skipBtn.addEventListener('click', skip);
   backBtn.addEventListener('click', back);
-  $('#clearLog').addEventListener('click', () => {
-    saveLog([]);
-    renderLog();
-  });
 
-  // Modal event listeners
-  $('#customBtn').addEventListener('click', () => openModal($('#customModal')));
-  $('#manageBtn').addEventListener('click', () => {
-    renderPresetList();
-    openModal($('#manageModal'));
-  });
-  $('#settingsBtn').addEventListener('click', () => openModal($('#settingsModal')));
-  $$('.close-btn').forEach(btn => btn.addEventListener('click', (e) => closeModal(e.target.closest('.modal'))));
-
-  // Settings Toggles
-  soundToggle.addEventListener('change', (e) => store.set('sounds', e.target.checked));
-  notificationToggle.addEventListener('change', (e) => store.set('notifications', e.target.checked));
-
-  // Theme buttons
-  $('#lightMode').addEventListener('click', () => applyAppearance('light'));
-  $('#darkMode').addEventListener('click', () => applyAppearance('dark'));
-  $('#autoMode').addEventListener('click', () => applyAppearance('auto'));
-
-  // Custom Preset Logic
-  function parseTimeInput(input){
-    const parts = input.split(':').map(Number);
-    if(parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])){
-      return parts[0] * 60 + parts[1];
-    }
-    return null;
+  function handleNudge(delta, start) {
+      if (start) {
+          nudger(delta);
+          state.nudgeInterval = setInterval(() => nudger(delta), 150);
+      } else {
+          clearInterval(state.nudgeInterval);
+      }
   }
+  minusBtn.addEventListener('mousedown', () => handleNudge(-15000, true));
+  plusBtn.addEventListener('mousedown', () => handleNudge(15000, true));
+  minusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(-15000, true); });
+  plusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(15000, true); });
+  document.addEventListener('mouseup', () => handleNudge(0, false));
+  document.addEventListener('touchend', () => handleNudge(0, false));
+
+  document.addEventListener('keydown', (e) => {
+    if ($('.modal.active') || e.target.tagName === 'INPUT') return;
+    if (e.code === 'Space') { e.preventDefault(); toggleStart(); }
+    if (e.code === 'ArrowRight') { e.preventDefault(); skip(); }
+    if (e.code === 'ArrowLeft') { e.preventDefault(); back(); }
+    if (e.key === '+') { e.preventDefault(); nudger(15000); }
+    if (e.key === '-') { e.preventDefault(); nudger(-15000); }
+  });
+
+  $('#clearLog').addEventListener('click', ()=>{
+    saveLog([]); renderLog();
+    store.set('workoutLetterIndex', 0);
+    state.workoutLetterIndex = 0;
+  });
+
+  soundToggle.addEventListener('change',()=>store.set('sounds', soundToggle.checked));
+  notificationToggle.addEventListener('change', () => store.set('notifications', notificationToggle.checked));
+  $('#lightMode').addEventListener('click', ()=> applyAppearance('light'));
+  $('#darkMode').addEventListener('click', ()=> applyAppearance('dark'));
+  $('#autoMode').addEventListener('click', ()=> applyAppearance('auto'));
+
+  $('#customBtn').addEventListener('click', ()=>openModal($('#customModal')));
+  $('#manageBtn').addEventListener('click', ()=>openModal($('#manageModal')));
+  $('#settingsBtn').addEventListener('click', ()=>openModal($('#settingsModal')));
+  $$('.close-btn').forEach(b=>b.addEventListener('click', (e)=>closeModal(e.target.closest('.modal'))));
+  $$('.modal').forEach(m=>m.addEventListener('click', (e)=>{ if(e.target === m) closeModal(m); }));
+  
+  // NEW: Custom Preset Validation
   $('#saveCustomBtn').addEventListener('click', () => {
-    const timeStr = $('#timeInput').value.trim();
-    const sets = parseInt($('#setsInput').value, 10);
-    const seconds = parseTimeInput(timeStr);
+    const timeVal = $('#timeInput').value.trim();
+    const setsVal = parseInt($('#setsInput').value, 10);
     
-    if (seconds !== null && seconds > 0 && sets > 0) {
-      presets.push({ id: crypto.randomUUID(), seconds, sets });
-      store.set('presets', presets);
-      selectPreset(presets.length - 1);
-      closeModal($('#customModal'));
-    } else {
-      console.error('Invalid input. Time must be in m:ss format and sets must be a positive number.');
+    const timeParts = timeVal.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (!timeParts || isNaN(setsVal) || setsVal < 1) {
+      showErrorModal("Invalid input. Please use 'm:ss' format for time and enter a valid number of sets.");
+      return;
     }
+    
+    const minutes = parseInt(timeParts[1], 10);
+    const seconds = parseInt(timeParts[2], 10);
+    
+    if (seconds >= 60) {
+      showErrorModal("Seconds must be less than 60.");
+      return;
+    }
+    
+    const totalSeconds = (minutes * 60) + seconds;
+    if (totalSeconds < 1) {
+        showErrorModal("Total time must be at least 1 second.");
+        return;
+    }
+    
+    const newPreset = {
+        id: crypto.randomUUID(),
+        seconds: totalSeconds,
+        sets: setsVal
+    };
+    
+    presets.push(newPreset);
+    store.set('presets', presets);
+    renderPresets();
+    closeModal($('#customModal'));
+    showErrorModal('Custom preset saved!');
   });
 
-  // Manage Presets Logic
-  function renderPresetList() {
-    $('#presetList').innerHTML = presets.map((p, i) => `
-      <div class="modal-list-item">
-        <span>${minsSec(p.seconds)} for ${p.sets} sets</span>
-        <button class="delete-btn" data-id="${p.id}">×</button>
-      </div>
-    `).join('');
+
+  // --- Wake Lock API
+  let wakeLock = null;
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    }
   }
-  $('#presetList').addEventListener('click', (e) => {
-    const btn = e.target.closest('.delete-btn');
-    if (btn) {
-      const idToDelete = btn.dataset.id;
-      presets = presets.filter(p => p.id !== idToDelete);
-      store.set('presets', presets);
-      renderPresetList();
-      selectPreset(0); // Select the first preset after deletion
+  function releaseWakeLock() {
+    if (wakeLock !== null) {
+      wakeLock.release().then(() => { wakeLock = null; });
     }
-  });
+  }
 
-  // Notification Permission
+  // --- Notifications API
   function requestNotificationPermission() {
-    if ('Notification' in window && notificationToggle.checked) {
+    if ('Notification' in window && Notification.permission === 'default' && notificationToggle.checked) {
       Notification.requestPermission();
     }
   }
-
   function showNotification(title, options) {
-    if ('Notification' in window && notificationToggle.checked && Notification.permission === 'granted') {
-      new Notification(title, options);
+    if ('Notification' in window && Notification.permission === 'granted' && notificationToggle.checked) {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.showNotification(title, options);
+      }).catch(e => console.error('Notification error:', e));
     }
   }
 
-  // Initial render
+  // ---------- Initial Setup
   renderPresets();
-  updateSetPills();
-  updateControls();
   renderLog();
   loadState();
+
 })();
 </script>
 </body>
