@@ -187,6 +187,10 @@
     height: 16px;
     fill: currentColor;
   }
+  
+  .btn-ghost svg {
+    display: none; /* Default to hidden on desktop */
+  }
 
   .pill{padding:7px 14px; border-radius:999px; background:var(--pill); color:var(--text); border:1px solid var(--pill-border); font-weight:700; font-size:14px; box-shadow:var(--shadow);}
   .pill.active{outline:3px solid rgba(47,128,255,.35)}
@@ -205,6 +209,11 @@
   .small{font-size:13px}
   .hidden{display:none !important}
   .center{display:flex; align-items:center; justify-content:center}
+  .log-text {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 14px;
+  }
 
   .preset-btn {
     display: flex;
@@ -486,6 +495,7 @@
     .btn-ghost svg {
       width: 20px;
       height: 20px;
+      display: block; /* Show SVG on small screens */
     }
     
     /* Make the clear button visible on mobile */
@@ -512,7 +522,7 @@
     .controls-row.idle .btn-ghost, .controls-row.finished .btn-ghost {
         font-size: 14px;
         min-width: unset;
-        flex-grow: 0; /* Changed from 1 to 0 */
+        flex-grow: 0; 
         padding: 11px 14px;
     }
     .controls-row.idle .btn-ghost .btn-text, .controls-row.finished .btn-ghost .btn-text {
@@ -520,6 +530,25 @@
     }
     .controls-row.idle .btn-ghost svg, .controls-row.finished .btn-ghost svg {
         display: none;
+    }
+    
+    /* Make the back/skip buttons show only icons on mobile during a workout */
+    .controls-row.running .btn-ghost, 
+    .controls-row.paused .btn-ghost {
+        min-width: unset;
+        flex-grow: 0;
+        font-size: 0;
+        padding: 11px 8px;
+    }
+    
+    .controls-row.running .btn-ghost .btn-text, 
+    .controls-row.paused .btn-ghost .btn-text {
+        display: none;
+    }
+    
+    .controls-row.running .btn-ghost svg, 
+    .controls-row.paused .btn-ghost svg {
+        display: block;
     }
   }
 
@@ -593,7 +622,7 @@
 
       <div class="card">
         <div class="footer-row">
-          <div class="pill">Logs reset daily</div>
+          <div class="log-text">Logs reset daily</div>
           <button class="btn btn-ghost" id="clearLog">Clear</button>
         </div>
         <div id="log" class="logbox small">No sets yet</div>
@@ -969,8 +998,8 @@
     controlsRow.classList.add(state.status);
 
     // Show/hide +15/-15 buttons
-    minusBtn.classList.toggle('hidden', isIdle);
-    plusBtn.classList.toggle('hidden', isIdle);
+    minusBtn.classList.toggle('hidden', isIdle || isFinished);
+    plusBtn.classList.toggle('hidden', isIdle || isFinished);
 
     // Update main button text
     if (isFinished) {
@@ -992,22 +1021,6 @@
     const skipBtnText = $('#skipBtn .btn-text');
     const skipSvg = $('#skipBtn svg');
     const backSvg = $('#backBtn svg');
-    
-    // Hide text on small screens when not idle
-    if (window.innerWidth <= 560 && !isIdle && !isFinished) {
-      backBtnText.style.display = 'none';
-      skipBtnText.style.display = 'none';
-      backSvg.style.display = 'block';
-      skipSvg.style.display = 'block';
-    } else {
-      backBtnText.style.display = 'inline-block';
-      skipBtnText.style.display = 'inline-block';
-      backSvg.style.display = 'block';
-      skipSvg.style.display = 'block';
-    }
-    
-    skipBtnText.textContent = isLastSet && (isRunning || isPaused) ? 'Finish' : 'Skip';
-    backBtn.disabled = isFirstSet && state.status !== 'finished';
     
     // Toggle the checkmark SVG
     if (isLastSet && (isRunning || isPaused)) {
