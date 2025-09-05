@@ -497,6 +497,16 @@
     .footer-row .btn-ghost .btn-text {
       display: inline-block;
     }
+
+    /* Fix settings modal button text */
+    #settingsModal .modal-row .btn {
+      font-size: 14px;
+      padding: 11px 14px;
+    }
+    
+    #settingsModal .modal-row .btn .btn-text {
+      display: inline-block;
+    }
   }
 
   #setRow{
@@ -937,10 +947,11 @@
     const isFinished = state.status === 'finished';
     const isFirstSet = state.setIndex === 0;
     const isLastSet = state.setIndex === state.totalSets - 1;
+    const isIdle = state.status === 'idle';
     
     // Show/hide +15/-15 buttons
-    minusBtn.classList.toggle('hidden', state.status === 'idle');
-    plusBtn.classList.toggle('hidden', state.status === 'idle');
+    minusBtn.classList.toggle('hidden', isIdle);
+    plusBtn.classList.toggle('hidden', isIdle);
 
     // Update main button text
     if (isFinished) {
@@ -963,8 +974,8 @@
     const skipSvg = $('#skipBtn svg');
     const backSvg = $('#backBtn svg');
     
-    // Hide text on small screens, show icons
-    if (window.innerWidth <= 560 && (isRunning || isPaused)) {
+    // Hide text on small screens when not idle
+    if (window.innerWidth <= 560 && !isIdle) {
       backBtnText.style.display = 'none';
       skipBtnText.style.display = 'none';
       backSvg.style.display = 'block';
