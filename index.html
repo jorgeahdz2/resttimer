@@ -261,7 +261,7 @@
   .modal.active .modal-content{ transform: translateY(0); }
   .modal-title{ font-size:28px; font-weight:900; text-align:center; margin-bottom:22px; letter-spacing: .2px; }
   .modal-row{ display:flex; gap:12px; margin-top:16px }
-  .modal-row .btn{ flex:1 }
+  .modal-row .btn{ flex: 1 1 0 }
   .modal-input{ background:var(--pill); border:1px solid var(--pill-border); color:var(--text); padding:12px 18px; border-radius:14px; width:100%; font-size:16px; font-family: inherit; }
   .modal-label{ font-weight:700; margin-bottom:6px; color:var(--muted) }
   .modal-list{ max-height: 320px; overflow-y:auto; margin:-12px; padding:12px; border-radius:16px; background:rgba(0,0,0,.04); }
@@ -287,6 +287,10 @@
   .time .digits.pulse { animation: timepulse .28s ease-out; }
 
   @media (max-width: 560px){
+    /* Keep modal ghost buttons readable on compact screens */
+    .modal-row .btn-ghost { font-size: 16px; padding: 11px 14px; min-width: 100px; white-space: nowrap; }
+    .modal-row .btn-ghost .btn-text { display: inline-block; }
+
     .controls-row{gap:8px} 
     .btn{padding:11px 14px}
     .btn-subtle{padding:10px 14px}
@@ -430,7 +434,7 @@
         </div>
       </div>
       <div class="modal-row">
-        <button class="btn btn-ghost close-btn">Cancel</button>
+        <button class="btn btn-ghost close-btn"><span class="btn-text">Cancel</span></button>
         <button id="saveCustomBtn" class="btn btn-primary">Save</button>
       </div>
     </div>
