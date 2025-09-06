@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/22184083/README.md)
+[README.md](https://github.com/user-attachments/files/22184203/README.md)
 # Workout Rest Timer
 
 A tiny, polished PWA for timing rest periods between sets. Works great on phone and desktop, supports offline use, haptics/sounds, and quick presets.
