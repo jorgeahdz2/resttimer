@@ -7,8 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>Workout Rest Timer</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png">
 <link rel="icon" href="resttimer-roundcap-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
 <link rel="icon" href="resttimer-roundcap-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
 <style>
@@ -27,6 +27,7 @@
     --pill-border:#243040;
     --shadow: 0 4px 12px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.1);
     --warn-fill: rgba(255,138,34,.15);
+    --overlay: rgba(0,0,0,.88);
   }
   .light{
     --bg:#f6f8fb;
@@ -43,6 +44,7 @@
     --pill-border:#e4e9ef;
     --shadow: 0 4px 12px rgba(20,30,40,.08), 0 1px 2px rgba(20,30,40,.05);
     --warn-fill: rgba(255,122,26,.15);
+    --overlay: rgba(0,0,0,.6);
   }
   @media (prefers-color-scheme: light){
     :root.auto{
@@ -60,6 +62,7 @@
       --pill-border:#e4e9ef;
       --shadow: 0 4px 12px rgba(20,30,40,.08), 0 1px 2px rgba(20,30,40,.05);
       --warn-fill: rgba(255,122,26,.15);
+      --overlay: rgba(0,0,0,.6);
     }
   }
 
@@ -188,18 +191,11 @@
     height: 16px;
     fill: currentColor;
   }
-  
-  .btn-ghost svg {
-    display: none;
-  }
+  .btn-ghost svg { display: none; }
 
   .pill{padding:7px 14px; border-radius:999px; background:var(--pill); color:var(--text); border:1px solid var(--pill-border); font-weight:700; font-size:14px; box-shadow:var(--shadow); cursor: pointer;}
   .pill.active{outline:3px solid rgba(47,128,255,.35); font-weight: 800;}
-  .pill.complete{
-    background:var(--warn-fill);
-    color: var(--ring-15);
-    border-color: var(--ring-15);
-  }
+  .pill.complete{ background:var(--warn-fill); color: var(--ring-15); border-color: var(--ring-15); }
   .subtle{color:var(--muted); font-weight:700}
   .subtle strong{color:var(--text)}
   .grid{display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); align-items:center}
@@ -210,11 +206,7 @@
   .small{font-size:13px}
   .hidden{display:none !important}
   .center{display:flex; align-items:center; justify-content:center}
-  .log-text {
-    color: var(--muted);
-    font-weight: 700;
-    font-size: 14px;
-  }
+  .log-text { color: var(--muted); font-weight: 700; font-size: 14px; }
 
   .preset-btn {
     display: flex;
@@ -233,392 +225,118 @@
     text-align: center;
   }
   .preset-btn:active{transform: scale(0.98);}
-
-  .preset-btn.active{
-    background: rgba(47,128,255,.1);
-    color: var(--accent);
-    border-color: var(--accent);
-    box-shadow: none;
-  }
+  .preset-btn.active{ background: rgba(47,128,255,.1); color: var(--accent); border-color: var(--accent); box-shadow: none; }
   .preset-btn.active:active{background: rgba(47,128,255,.15);}
-  .preset-btn .time-label {
-    font-weight: 800;
-    letter-spacing: .3px;
-    font-size: 16px;
-  }
-  .preset-btn .sets-label {
-    color: var(--muted);
-    font-weight: 700;
-    font-size: 14px;
-    line-height: 1.2;
-    margin-top: 2px;
-    letter-spacing: .2px;
-  }
-  .preset-btn.active .sets-label{
-    color: var(--accent);
-  }
+  .preset-btn .time-label { font-weight: 800; letter-spacing: .3px; font-size: 16px; }
+  .preset-btn .sets-label { color: var(--muted); font-weight: 700; font-size: 14px; line-height: 1.2; margin-top: 2px; letter-spacing: .2px; }
+  .preset-btn.active .sets-label{ color: var(--accent); }
 
-  #log, .pill, .btn-ghost{
-      box-shadow: none;
-  }
-  .pill, .btn-ghost{
-    background: var(--btn);
-    border-color: var(--pill-border);
-  }
-  #log{
-    background: var(--pill);
-    border-color: var(--pill-border);
-  }
-  .pill.active{
-    outline:3px solid rgba(47,128,255,.35);
-  }
+  #log, .pill, .btn-ghost{ box-shadow: none; }
+  .pill, .btn-ghost{ background: var(--btn); border-color: var(--pill-border); }
+  #log{ background: var(--pill); border-color: var(--pill-border); }
+  .pill.active{ outline:3px solid rgba(47,128,255,.35); }
+  .log-entry{ font-size: 14px; color: var(--text); }
+  .log-entry strong{ color: var(--text); }
+  .logbox { box-shadow: var(--shadow); }
+  .footer-row .btn-ghost{ box-shadow: none; }
 
-  .log-entry{
-    font-size: 14px;
-    color: var(--text);
-  }
-  .log-entry strong{
-    color: var(--text);
-  }
-  .logbox {
-    box-shadow: var(--shadow);
-  }
-  .footer-row .btn-ghost{
-    box-shadow: none;
-  }
+  .footer-links{ display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+  .footer-links button{ font-weight: 700; font-size: 14px; padding: 7px 14px; border-radius: 999px; background: var(--btn); color: var(--muted); border: 1px solid var(--pill-border); cursor: pointer; transition: background .15s ease; }
+  .footer-links button:active{ background: var(--pill-border); }
 
-  .footer-links{
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 16px;
-  }
-  .footer-links button{
-    font-weight: 700;
-    font-size: 14px;
-    padding: 7px 14px;
-    border-radius: 999px;
-    background: var(--btn);
-    color: var(--muted);
-    border: 1px solid var(--pill-border);
-    cursor: pointer;
-    transition: background .15s ease;
-  }
-  .footer-links button:active{
-    background: var(--pill-border);
-  }
-
-  .modal{
-    position:fixed; inset:0; z-index:100;
-    background:rgba(0,0,0,.8);
-    backdrop-filter: blur(8px);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none;
-    transition: opacity .15s ease;
-  }
-  .modal.active{
-    opacity:1; pointer-events:auto;
-  }
+  /* Modal (restored "bulky, glossy" look the user liked) */
+  .modal{ position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.65); backdrop-filter: blur(8px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition: opacity .15s ease; }
+  .modal.active{ opacity:1; pointer-events:auto; }
   .modal-content{
     background:var(--card);
-    border-radius:24px;
-    width:min(90vw, 420px);
-    padding:24px;
-    box-shadow: var(--shadow);
+    border-radius:28px;
+    width:min(92vw, 640px);
+    padding:28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.25);
     transform: translateY(16px);
     transition: transform .25s ease;
-    max-width: 420px;
     margin: 12px;
   }
-  .modal.active .modal-content{
-    transform: translateY(0);
-  }
-  .modal-title{
-    font-size:22px;
-    font-weight:800;
-    text-align:center;
-    margin-bottom:20px;
-    letter-spacing: .2px;
-  }
-  .modal-row{display:flex; gap:12px; margin-top:16px}
-  .modal-row .btn{flex:1}
-  .modal-input{
-    background:var(--pill);
-    border:1px solid var(--pill-border);
-    color:var(--text);
-    padding:12px 18px;
-    border-radius:14px;
-    width:100%;
-    font-size:16px;
-    font-family: inherit;
-  }
-  .modal-label{font-weight:700; margin-bottom:6px; color:var(--muted)}
-  .modal-list{
-    max-height: 240px; overflow-y:auto; margin:-12px; padding:12px;
-    border-radius:12px;
-    background:rgba(0,0,0,.04);
-  }
-  .modal-list-item{
-    padding:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:var(--card);
-    border-radius:10px;
-  }
-  .modal-list-item+.modal-list-item{margin-top:8px}
-  .modal-list-item span{font-weight:600}
-  .modal-list-item .delete-btn{
-    background:none;
-    border:none;
-    font-size:20px;
-    color:#ff6666;
-    padding:4px 8px;
-    cursor:pointer;
-  }
-  .setting-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:12px 0;
-    border-top:1px solid var(--pill-border);
-    font-weight:600;
-    color:var(--text);
-    gap: 16px;
-  }
-  .setting-row:first-child{border-top:none}
-  .setting-row.buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px 0;
-  }
-  
-  .setting-row.buttons .modal-row {
-    width: 100%;
-    padding-top: 8px;
-    margin-top: 0;
-  }
+  .light .modal-content, :root.auto .modal-content{ background:#ffffff; }
+  .modal.active .modal-content{ transform: translateY(0); }
+  .modal-title{ font-size:28px; font-weight:900; text-align:center; margin-bottom:22px; letter-spacing: .2px; }
+  .modal-row{ display:flex; gap:12px; margin-top:16px }
+  .modal-row .btn{ flex:1 }
+  .modal-input{ background:var(--pill); border:1px solid var(--pill-border); color:var(--text); padding:12px 18px; border-radius:14px; width:100%; font-size:16px; font-family: inherit; }
+  .modal-label{ font-weight:700; margin-bottom:6px; color:var(--muted) }
+  .modal-list{ max-height: 320px; overflow-y:auto; margin:-12px; padding:12px; border-radius:16px; background:rgba(0,0,0,.04); }
+  .modal-list-item{ padding:14px 16px; display:flex; justify-content:space-between; align-items:center; background:var(--card); border-radius:14px; border:1px solid var(--pill-border); }
+  .modal-list-item+.modal-list-item{margin-top:10px}
+  .modal-list-item span{ font-weight:800; letter-spacing:.2px }
+  .modal-list-item .delete-btn{ background:none; border:none; font-size:22px; color:#8ea0b3; padding:4px 8px; cursor:pointer; }
+  .modal-list-item .delete-btn:hover { color: #ff6666; }
 
-  .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 48px;
-    height: 26px;
-  }
+  .setting-row{ display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-top:1px solid var(--pill-border); font-weight:800; color:var(--text); gap: 16px; }
+  .setting-row:first-child{border-top:none}
+  .setting-row.buttons { display: flex; flex-direction: column; align-items: flex-start; padding: 12px 0; }
+  .setting-row.buttons .modal-row { width: 100%; padding-top: 8px; margin-top: 0; }
+
+  .toggle-switch { position: relative; display: inline-block; width: 54px; height: 30px; }
   .toggle-switch input { display:none; }
-  .toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--btn);
-    border: 1px solid var(--pill-border);
-    transition: .4s;
-    border-radius: 26px;
-  }
-  .toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 2px;
-    background-color: var(--muted);
-    transition: .4s;
-    border-radius: 50%;
-  }
-  .toggle-switch input:checked + .toggle-slider {
-    background-color: var(--accent);
-    border-color: var(--accent);
-  }
-  .toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(20px);
-    background-color: white;
-  }
-  
-  @keyframes timepulse {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.025); }
-    100% { transform: scale(1); }
-  }
-  .time .digits.pulse {
-    animation: timepulse .28s ease-out;
-  }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--btn); border: 1px solid var(--pill-border); transition: .3s; border-radius: 30px; }
+  .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: var(--muted); transition: .3s; border-radius: 50%; }
+  .toggle-switch input:checked + .toggle-slider { background-color: var(--accent); border-color: var(--accent); }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); background-color: white; }
+
+  @keyframes timepulse { 0% { transform: scale(1); } 40% { transform: scale(1.025); } 100% { transform: scale(1); } }
+  .time .digits.pulse { animation: timepulse .28s ease-out; }
 
   @media (max-width: 560px){
     .controls-row{gap:8px} 
     .btn{padding:11px 14px}
     .btn-subtle{padding:10px 14px}
-    .footer-links{
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .btn-ghost {
-      padding: 11px 8px;
-      min-width: unset;
-      flex-grow: 1;
-      font-size: 0;
-    }
-    .btn-ghost .btn-text{
-      display: none;
-    }
-    .btn-ghost svg {
-      width: 20px;
-      height: 20px;
-      display: block;
-    }
-    
-    .footer-row .btn-ghost {
-      font-size: 14px;
-      min-width: unset;
-      flex-grow: 0;
-    }
-    .footer-row .btn-ghost .btn-text {
-      display: inline-block;
-    }
-    
-    .controls-row .btn-ghost {
-        min-width: unset;
-        flex-grow: 0;
-        font-size: 0;
-        padding: 11px 8px;
-    }
-    .controls-row .btn-ghost .btn-text {
-        display: none;
-    }
-    .controls-row .btn-ghost svg {
-        display: block;
-    }
-    
-    #settingsModal .modal-row .btn {
-      font-size: 14px;
-      padding: 11px 14px;
-    }
-    
-    #settingsModal .modal-row .btn .btn-text {
-      display: inline-block;
-    }
-    
-    #setRow {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 20px;
-      overflow-x: auto;
-      white-space: nowrap;
-      flex-wrap: nowrap;
-      /* Added vertical padding to prevent clipping of outlines/shadows */
-      padding: 12px 24px;
-    }
+    .footer-links{ flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+    .btn-ghost { padding: 11px 8px; min-width: unset; flex-grow: 1; font-size: 0; }
+    .btn-ghost .btn-text{ display: none; }
+    .btn-ghost svg { width: 20px; height: 20px; display: block; }
+    .footer-row .btn-ghost { font-size: 14px; min-width: unset; flex-grow: 0; }
+    .footer-row .btn-ghost .btn-text { display: inline-block; }
+    .controls-row .btn-ghost { min-width: unset; flex-grow: 0; font-size: 0; padding: 11px 8px; }
+    .controls-row .btn-ghost .btn-text { display: none; }
+    .controls-row .btn-ghost svg { display: block; }
+    #settingsModal .modal-row .btn { font-size: 14px; padding: 11px 14px; }
+    #settingsModal .modal-row .btn .btn-text { display: inline-block; }
+    #setRow { display: flex; justify-content: center; gap: 10px; margin-top: 20px; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding: 12px 24px; }
   }
 
-  #setRow{
-    margin-top: 24px;
-    overflow-x: auto;
-    white-space: nowrap;
-    /* Added vertical padding to prevent clipping of outlines/shadows */
-    padding: 12px 24px;
-  }
-
-  #setRow::-webkit-scrollbar {
-    height: 6px;
-  }
-
-  #setRow::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  #setRow::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-  }
+  #setRow{ margin-top: 24px; overflow-x: auto; white-space: nowrap; padding: 12px 24px; }
+  #setRow::-webkit-scrollbar { height: 6px; }
+  #setRow::-webkit-scrollbar-track { background: transparent; }
+  #setRow::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
   
-  .manage-presets-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
+  .manage-presets-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+  .manage-presets-row .delete-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 20px; }
+  .manage-presets-row .delete-btn:hover { color: #ff6666; }
   
-  .manage-presets-row .delete-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--muted);
-    font-size: 20px;
-  }
-  
-  .manage-presets-row .delete-btn:hover {
-    color: #ff6666;
-  }
-  
-  .success {
-      color: var(--accent);
-  }
-  
-  .error {
-      color: #ff6666;
-  }
+  .success { color: var(--accent); }
+  .error { color: #ff6666; }
 
-  .dial-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
-    gap: 16px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-  }
+  .dial-container { display: flex; justify-content: space-around; align-items: flex-end; gap: 16px; margin-top: 20px; margin-bottom: 20px; }
+  .dial { display: flex; flex-direction: column; align-items: center; }
+  .dial-label { font-weight: 700; color: var(--muted); margin-bottom: 8px; }
+  .dial-display { background: var(--btn); border: 1px solid var(--pill-border); color: var(--text); padding: 10px 18px; border-radius: 12px; font-size: 24px; font-weight: 800; width: 80px; text-align: center; box-shadow: var(--shadow); }
+  .dial-buttons { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .dial-buttons button { background: var(--btn); border: 1px solid var(--pill-border); color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; user-select: none; transition: transform .03s ease, background .15s ease; box-shadow: var(--shadow); line-height: 1; }
+  .dial-buttons button:active { transform: scale(0.95); }
 
-  .dial {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* Rotate overlay for small iPhones in landscape */
+  #rotateOverlay{
+    position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
+    background: var(--overlay); color: white; z-index: 300; text-align:center; padding: 24px;
   }
-  .dial-label {
-    font-weight: 700;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-  .dial-display {
-    background: var(--btn);
-    border: 1px solid var(--pill-border);
-    color: var(--text);
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-size: 24px;
-    font-weight: 800;
-    width: 80px;
-    text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .dial-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-  }
-  .dial-buttons button {
-    background: var(--btn);
-    border: 1px solid var(--pill-border);
-    color: var(--text);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform .03s ease, background .15s ease;
-    box-shadow: var(--shadow);
-    line-height: 1;
-  }
-  .dial-buttons button:active {
-    transform: scale(0.95);
+  #rotateOverlay .panel{
+    max-width: 520px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 16px; padding: 20px 22px; font-weight: 800; letter-spacing: .2px;
   }
 </style>
 </head>
 <body class="auto" id="root">
+  <div id="rotateOverlay"><div class="panel">For best experience, rotate your iPhone to <strong>portrait</strong>.</div></div>
   <div class="wrap">
     <header>
       <div class="app-title">Workout Rest Timer</div>
@@ -655,8 +373,7 @@
           </button>
         </div>
 
-        <div class="row" id="setRow">
-        </div>
+        <div class="row" id="setRow"></div>
       </div>
 
       <div class="card">
@@ -682,13 +399,14 @@
     </section>
   </div>
 
+  <!-- Custom Preset Modal -->
   <div id="customModal" class="modal">
     <div class="modal-content">
       <div class="modal-title">Add Custom Preset</div>
       <div class="dial-container">
         <div class="dial">
           <div class="dial-label">Minutes</div>
-          <div class="dial-display" id="minutesDisplay">0</div>
+          <div class="dial-display" id="minutesDisplay">1</div>
           <div class="dial-buttons">
             <button class="up-btn">+</button>
             <button class="down-btn">-</button>
@@ -696,7 +414,7 @@
         </div>
         <div class="dial">
           <div class="dial-label">Seconds</div>
-          <div class="dial-display" id="secondsDisplay">00</div>
+          <div class="dial-display" id="secondsDisplay">30</div>
           <div class="dial-buttons">
             <button class="up-btn">+</button>
             <button class="down-btn">-</button>
@@ -718,6 +436,7 @@
     </div>
   </div>
 
+  <!-- Manage Presets Modal -->
   <div id="manageModal" class="modal">
     <div class="modal-content">
       <div class="modal-title">Manage Presets</div>
@@ -728,6 +447,7 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <div class="modal-title">Settings</div>
@@ -759,6 +479,7 @@
     </div>
   </div>
 
+  <!-- Message Modal -->
   <div id="messageModal" class="modal">
     <div class="modal-content">
       <div class="modal-title" id="messageTitle"></div>
@@ -770,24 +491,6 @@
   </div>
   
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  // Set Firebase log level for debugging
-  setLogLevel('debug');
-
-  // Global variables provided by the environment
-  const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-  const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-  const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-  let app;
-  let db;
-  let auth;
-  let userId;
-
   // ---------- Utilities
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
@@ -800,19 +503,26 @@
     if (h === 0) h = 12;
     return h + ':' + pad(m) + ' ' + am;
   };
-
   const store = {
-    get(k, d) {
-      try {
-        return JSON.parse(localStorage.getItem(k)) ?? d
-      } catch {
-        return d
-      }
-    },
-    set(k, v) {
-      localStorage.setItem(k, JSON.stringify(v))
-    }
+    get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } },
+    set(k, v) { localStorage.setItem(k, JSON.stringify(v)) }
   };
+
+  // Register the service worker (for notifications + offline)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // Orientation guard: lock to portrait on small iPhones only
+  const isIphone = /iPhone|iPod/i.test(navigator.userAgent);
+  function updateRotateOverlay(){
+    const landscape = window.matchMedia('(orientation: landscape)').matches;
+    const small = Math.min(window.innerWidth, window.innerHeight) < 500; // cover small iPhones only
+    $('#rotateOverlay').style.display = (isIphone && landscape && small) ? 'flex' : 'none';
+  }
+  window.addEventListener('resize', updateRotateOverlay);
+  window.addEventListener('orientationchange', updateRotateOverlay);
+  updateRotateOverlay();
 
   // ---------- Sounds & Haptics
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -820,51 +530,24 @@
   const haptics = 'vibrate' in navigator;
   const soundToggle = $('#soundToggle');
   const notificationToggle = $('#notificationToggle');
-
-  function initAudio() {
-    if (!ctx) ctx = new AudioCtx();
-    return ctx.resume();
-  }
-  document.body.addEventListener('click', initAudio, {
-    once: true
-  });
-
-  function playSound() {
-    if (!soundToggle.checked || !ctx) return Promise.resolve();
-    return ctx.resume();
-  }
-
-  function playHaptics(pattern = 200) {
-    if (haptics && soundToggle.checked) navigator.vibrate(pattern);
-  }
-
+  function initAudio() { if (!ctx) ctx = new AudioCtx(); return ctx.resume(); }
+  document.body.addEventListener('click', initAudio, { once: true });
+  function playSound() { if (!soundToggle.checked || !ctx) return Promise.resolve(); return ctx.resume(); }
+  function playHaptics(pattern = 200) { if (haptics && soundToggle.checked) navigator.vibrate(pattern); }
   function beep(f = 880, dur = 0.12, vol = 0.18, type = 'sine', delay = 0) {
     if (!ctx) return;
     const t0 = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = f;
+    osc.type = type; osc.frequency.value = f;
     gain.gain.setValueAtTime(0.0001, t0);
     gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     osc.connect(gain).connect(ctx.destination);
-    osc.start(t0);
-    osc.stop(t0 + dur + 0.02);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
   }
-
-  function playShort() {
-    playSound().then(() => beep(1200, 0.095, 0.14, 'sine'));
-    playHaptics(50);
-  }
-
-  function playEnd() {
-    playSound().then(() => {
-      beep(880, 0.12, 0.16, 'sine');
-      beep(660, 0.12, 0.16, 'sine', 0.16);
-    });
-    playHaptics([200, 100, 200]);
-  }
+  function playShort(){ playSound().then(() => beep(1200, 0.095, 0.14, 'sine')); playHaptics(50); }
+  function playEnd(){ playSound().then(() => { beep(880, 0.12, 0.16, 'sine'); beep(660, 0.12, 0.16, 'sine', 0.16); }); playHaptics([200,100,200]); }
 
   // ---------- DOM Elements
   const ring = $('#ring');
@@ -882,7 +565,7 @@
   const progressCircle = $('#ring');
   const controlsRow = $('.controls-row');
 
-  // ---------- App State & Data
+  // ---------- App State & Data (local-only)
   let state = {
     seconds: 60,
     totalSets: 3,
@@ -905,112 +588,19 @@
   soundToggle.checked = store.get('sounds', true);
   notificationToggle.checked = store.get('notifications', true);
 
-  const defaultPresets = [{
-    id: 'p1',
-    seconds: 60,
-    sets: 3
-  }, {
-    id: 'p2',
-    seconds: 60,
-    sets: 2
-  }, {
-    id: 'p3',
-    seconds: 90,
-    sets: 3
-  }, {
-    id: 'p4',
-    seconds: 120,
-    sets: 4
-  }, {
-    id: 'p5',
-    seconds: 45,
-    sets: 3
-  }, {
-    id: 'p6',
-    seconds: 75,
-    sets: 4
-  }, ];
-  let presets = store.get('presets', defaultPresets.map(p => ({ ...p,
-    id: p.id || crypto.randomUUID()
-  })));
+  const defaultPresets = [
+    { id: 'p1', seconds: 60, sets: 3 },
+    { id: 'p2', seconds: 60, sets: 2 },
+    { id: 'p3', seconds: 90, sets: 3 },
+    { id: 'p4', seconds: 120, sets: 4 },
+    { id: 'p5', seconds: 45, sets: 3 },
+    { id: 'p6', seconds: 75, sets: 4 },
+  ];
+  let presets = store.get('presets', defaultPresets.map(p => ({ ...p, id: p.id || crypto.randomUUID() })));
   let presetIndex = store.get('lastPresetIndex', 0);
   if (presetIndex >= presets.length) presetIndex = 0;
 
-  let customState = {
-      minutes: 1,
-      seconds: 30,
-      sets: 3,
-  };
-
-  async function initializeFirebase() {
-    try {
-      if (Object.keys(firebaseConfig).length > 0) {
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-        setupAuthListener();
-      } else {
-        console.log('Firebase config not provided. Running in a limited mode without data persistence.');
-        loadState();
-        renderPresets();
-      }
-    } catch (e) {
-      console.error("Firebase initialization failed:", e);
-      console.log("Running in a limited mode without data persistence.");
-      loadState();
-      renderPresets();
-    }
-  }
-
-  async function setupAuthListener() {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        userId = user.uid;
-      } else {
-        userId = crypto.randomUUID();
-        try {
-          if (initialAuthToken) {
-            await signInWithCustomToken(auth, initialAuthToken);
-          } else {
-            await signInAnonymously(auth);
-          }
-        } catch (e) {
-          console.error("Authentication failed:", e);
-        }
-      }
-      loadState();
-      loadPresetsFromFirestore();
-    });
-  }
-
-  async function loadPresetsFromFirestore() {
-    if (!userId) {
-      return;
-    }
-
-    try {
-      const presetsCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'presets');
-      const querySnapshot = await getDocs(presetsCollectionRef);
-      const firestorePresets = [];
-      querySnapshot.forEach(doc => {
-        firestorePresets.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-
-      if (firestorePresets.length > 0) {
-        presets = firestorePresets;
-        store.set('presets', presets);
-      }
-      selectPreset(presetIndex);
-      renderPresets();
-    } catch (e) {
-      console.error("Error loading presets from Firestore: ", e);
-      presets = store.get('presets', defaultPresets.map(p => ({ ...p, id: p.id || crypto.randomUUID() })));
-      renderPresets();
-    }
-  }
+  let customState = { minutes: 1, seconds: 30, sets: 3 };
 
   // ---------- Core Functions
   function renderPresets() {
@@ -1039,15 +629,6 @@
     selectPreset(presetIndex);
     renderPresets();
     renderManagePresets();
-
-    if (userId) {
-      try {
-        const presetDocRef = doc(db, 'artifacts', appId, 'users', userId, 'presets', id);
-        await deleteDoc(presetDocRef);
-      } catch (e) {
-        console.error("Error deleting preset from Firestore: ", e);
-      }
-    }
   }
 
   function selectPreset(i, fromUser = false) {
@@ -1063,9 +644,7 @@
   }
 
   function updateSetPills() {
-    setRow.innerHTML = Array.from({
-      length: state.totalSets
-    }, (_, s) => `
+    setRow.innerHTML = Array.from({ length: state.totalSets }, (_, s) => `
       <span class="pill ${s === state.setIndex ? 'active' : ''} ${s < state.setIndex ? 'complete' : ''}" data-set="${s}">
         Set ${s + 1}
       </span>
@@ -1108,15 +687,9 @@
     s %= 60;
     return `${m}:${pad(s)}`;
   }
-
-  function minsSec(sec) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${pad(s)}`;
-  }
+  function minsSec(sec) { const m = Math.floor(sec / 60); const s = sec % 60; return `${m}:${pad(s)}`; }
 
   const CIRCUM = 2 * Math.PI * 47;
-
   function drawRing(progress) {
     const offset = CIRCUM * (1 - progress);
     ring.style.strokeDasharray = CIRCUM.toFixed(2);
@@ -1134,21 +707,13 @@
 
       const wholeSec = Math.ceil(state.remaining / 1000);
       if (wholeSec <= 3 && wholeSec >= 1 && wholeSec !== state.lastWholeSec) {
-        digits.classList.remove('pulse');
-        void digits.offsetWidth;
-        digits.classList.add('pulse');
+        digits.classList.remove('pulse'); void digits.offsetWidth; digits.classList.add('pulse');
       }
       state.lastWholeSec = wholeSec;
 
-      if (state.remaining <= 15000 && !state.justWarned) {
-        state.justWarned = true;
-        playShort();
-      }
+      if (state.remaining <= 15000 && !state.justWarned) { state.justWarned = true; playShort(); }
 
-      if (state.remaining <= 0) {
-        completeSet();
-        return;
-      }
+      if (state.remaining <= 0) { completeSet(); return; }
 
       digits.textContent = formatTime(state.remaining);
       ring.style.stroke = getRingColor();
@@ -1165,13 +730,8 @@
     cancelAnimationFrame(state.raf);
     state.raf = null;
 
-    if (state.actualRestTime > 1000) {
-      state.workoutLogData.push({
-        actualTime: state.actualRestTime
-      });
-    }
+    if (state.actualRestTime > 1000) state.workoutLogData.push({ actualTime: state.actualRestTime });
     digits.classList.remove('pulse');
-
     playEnd();
 
     if (state.setIndex >= state.totalSets - 1) {
@@ -1181,30 +741,16 @@
       digits.textContent = '0:00';
       const finalPill = $(`[data-set="${state.setIndex}"]`);
       if (finalPill) finalPill.classList.add('complete');
-
-      let notifTitle = "Workout Finished!";
-      let notifBody = `Great job! You completed all ${state.totalSets} sets.`;
-      showNotification(notifTitle, {
-        body: notifBody,
-        tag: 'workout-timer'
-      });
+      showNotification('Workout Finished!', { body: `Great job! You completed all ${state.totalSets} sets.`, tag: 'workout-timer' });
     } else {
       state.setIndex++;
       updateSetPills();
       resetTimer();
-
-      let notifTitle = "Rest Complete!";
-      let notifBody = `Set ${state.setIndex} done. Get ready for set ${state.setIndex + 1}!`;
-      showNotification(notifTitle, {
-        body: notifBody,
-        tag: 'workout-timer'
-      });
+      showNotification('Rest Complete!', { body: `Set ${state.setIndex} done. Get ready for set ${state.setIndex + 1}!`, tag: 'workout-timer' });
     }
 
     updateControls();
-    setTimeout(() => {
-      state.completing = false;
-    }, 200);
+    setTimeout(() => { state.completing = false; }, 200);
   }
 
   function updateControls() {
@@ -1219,45 +765,24 @@
     minusBtn.classList.toggle('hidden', isFinished);
     plusBtn.classList.toggle('hidden', isFinished);
 
-    if (isFinished) {
-      startBtn.textContent = 'Finish';
-      startBtn.classList.add('orange');
-    } else if (isRunning) {
-      startBtn.textContent = 'Pause';
-      startBtn.classList.remove('orange');
-    } else if (isPaused) {
-      startBtn.textContent = 'Resume';
-      startBtn.classList.remove('orange');
-    } else {
-      startBtn.textContent = 'Start';
-      startBtn.classList.remove('orange');
-    }
+    if (isFinished) { startBtn.textContent = 'Finish'; startBtn.classList.add('orange'); }
+    else if (isRunning) { startBtn.textContent = 'Pause'; startBtn.classList.remove('orange'); }
+    else if (isPaused) { startBtn.textContent = 'Resume'; startBtn.classList.remove('orange'); }
+    else { startBtn.textContent = 'Start'; startBtn.classList.remove('orange'); }
 
     const skipSvg = $('#skipBtn svg');
-    if (isLastSet && (isRunning || isPaused)) {
-      skipSvg.innerHTML = `<path d="M9 16.2l-3.5-3.5L4 14.2l5 5L20 9l-1.4-1.4L9 16.2z"/>`;
-    } else {
-      skipSvg.innerHTML = `<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>`;
-    }
+    if (isLastSet && (isRunning || isPaused)) skipSvg.innerHTML = `<path d="M9 16.2l-3.5-3.5L4 14.2l5 5L20 9l-1.4-1.4L9 16.2z"/>`;
+    else skipSvg.innerHTML = `<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>`;
 
-    if (isRunning) {
-      statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
-    } else if (isFinished) {
-      statusEl.innerHTML = `Workout <strong>Finished!</strong>`;
-    } else {
-      statusEl.innerHTML = 'Rest · ' + state.status;
-    }
+    if (isRunning) statusEl.innerHTML = (isLastSet) ? `Rest: <strong class="orange">Last set</strong>` : `Up next: <strong>Set ${state.setIndex + 2}</strong>`;
+    else if (isFinished) statusEl.innerHTML = `Workout <strong>Finished!</strong>`;
+    else statusEl.innerHTML = 'Rest · ' + state.status;
   }
 
   function toggleStart() {
-    if (state.status === 'idle' || state.status === 'paused') {
-      start();
-    } else if (state.status === 'running') {
-      pause();
-    } else if (state.status === 'finished') {
-      logFinishedWorkout();
-      resetTimer(true);
-    }
+    if (state.status === 'idle' || state.status === 'paused') start();
+    else if (state.status === 'running') pause();
+    else if (state.status === 'finished') { logFinishedWorkout(); resetTimer(true); }
   }
 
   function start() {
@@ -1271,7 +796,6 @@
     state.raf = requestAnimationFrame(tick);
     updateControls();
   }
-
   function pause() {
     releaseWakeLock();
     state.status = 'paused';
@@ -1280,58 +804,29 @@
     state.raf = null;
     updateControls();
   }
-
   function skip() {
-    if (state.status === 'finished') {
-      return;
-    }
-    if (state.actualRestTime > 1000) {
-      state.workoutLogData.push({
-        actualTime: state.actualRestTime
-      });
-    }
+    if (state.status === 'finished') return;
+    if (state.actualRestTime > 1000) state.workoutLogData.push({ actualTime: state.actualRestTime });
     if (state.setIndex < state.totalSets - 1) {
-      state.setIndex++;
-      updateSetPills();
-      resetTimer();
+      state.setIndex++; updateSetPills(); resetTimer();
     } else {
-      state.status = 'finished';
-      state.remaining = 0;
-      drawRing(0);
-      digits.textContent = '0:00';
-      const finalPill = $(`[data-set="${state.setIndex}"]`);
-      if (finalPill) finalPill.classList.add('complete');
-      updateControls();
+      state.status = 'finished'; state.remaining = 0; drawRing(0); digits.textContent = '0:00';
+      const finalPill = $(`[data-set="${state.setIndex}"]`); if (finalPill) finalPill.classList.add('complete'); updateControls();
     }
   }
-
   function back() {
-    if (state.status === 'finished') {
-      state.status = 'idle';
-      updateSetPills();
-    } else if (state.setIndex > 0) {
-      state.setIndex--;
-      updateSetPills();
-    }
+    if (state.status === 'finished') { state.status = 'idle'; updateSetPills(); }
+    else if (state.setIndex > 0) { state.setIndex--; updateSetPills(); }
     resetTimer();
   }
-
-  function jumpToSet(targetSetIndex) {
-    pause();
-    state.setIndex = targetSetIndex;
-    resetTimer();
-  }
-
+  function jumpToSet(targetSetIndex) { pause(); state.setIndex = targetSetIndex; resetTimer(); }
   function nudger(delta) {
     state.remaining = Math.max(0, (state.remaining | 0) + delta);
-    if (state.status !== 'running') {
-      state.seconds = Math.round(state.remaining / 1000);
-    }
+    if (state.status !== 'running') state.seconds = Math.round(state.remaining / 1000);
     digits.textContent = formatTime(state.remaining);
     ring.style.stroke = getRingColor();
     drawRing(state.remaining / (state.seconds * 1000));
   }
-
   function getRingColor() {
     if (state.remaining <= 15000) return getComputedStyle(document.documentElement).getPropertyValue('--ring-15') || '#ff8a22';
     return getComputedStyle(document.documentElement).getPropertyValue('--ring') || '#2e7cf7';
@@ -1339,17 +834,11 @@
 
   function todaysKey() {
     const d = new Date();
-    return `log-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const pad2 = n => String(n).padStart(2,'0');
+    return `log-${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
   }
-
-  function loadLog() {
-    return store.get(todaysKey(), []);
-  }
-
-  function saveLog(items) {
-    store.set(todaysKey(), items);
-  }
-
+  function loadLog() { return store.get(todaysKey(), []); }
+  function saveLog(items) { store.set(todaysKey(), items); }
   function renderLog() {
     const items = loadLog();
     logEl.innerHTML = !items.length ? 'No sets yet' : items.map(i => `<div class="log-entry">Workout ${i.letter}: ${i.setsCompleted}/${i.targetSets} sets, rest ${minsSec(Math.round(i.totalActualTime/1000))} — ${i.time}</div>`).join('');
@@ -1363,13 +852,7 @@
     const p = presets[presetIndex];
     const totalActualTime = state.workoutLogData.reduce((sum, set) => sum + set.actualTime, 0);
     const setsCompleted = state.workoutLogData.length;
-    items.push({
-      letter,
-      targetSets: p.sets,
-      setsCompleted: setsCompleted,
-      time: fmt12(new Date()),
-      totalActualTime: totalActualTime
-    });
+    items.push({ letter, targetSets: p.sets, setsCompleted, time: fmt12(new Date()), totalActualTime });
     saveLog(items);
     renderLog();
     state.workoutLetterIndex++;
@@ -1390,7 +873,7 @@
   function loadState() {
     const savedState = store.get('appState');
     if (savedState) {
-      const p = presets[savedState.lastPresetIndex];
+      const p = presets[savedState.lastPresetIndex] || presets[0];
       state.seconds = p.seconds;
       state.totalSets = p.sets;
       state.setIndex = savedState.setIndex || 0;
@@ -1398,12 +881,7 @@
       state.remaining = savedState.remaining || state.seconds * 1000;
       state.workoutLogData = savedState.workoutLogData || [];
       presetIndex = savedState.lastPresetIndex || 0;
-
-      if (state.status === 'running') {
-        start();
-      } else {
-        updateUIFromState();
-      }
+      if (state.status === 'running') { start(); } else { updateUIFromState(); }
     } else {
       selectPreset(presetIndex);
     }
@@ -1415,23 +893,17 @@
     root.className = mode;
     store.set('appearance', mode);
     $$('#settingsModal .btn-ghost').forEach(btn => btn.classList.remove('active'));
-    $(`#${mode}Mode`).classList.add('active');
+    const target = document.getElementById(`${mode}Mode`);
+    if (target) target.classList.add('active');
   }
 
   function openModal(modal) {
     $$('.modal').forEach(m => m.classList.remove('active'));
-    if (modal.id === 'manageModal') {
-      renderManagePresets();
-    } else if (modal.id === 'customModal') {
-        updateCustomDialDisplay();
-    }
+    if (modal.id === 'manageModal') renderManagePresets();
+    else if (modal.id === 'customModal') updateCustomDialDisplay();
     modal.classList.add('active');
   }
-
-  function closeModal(modal) {
-    modal.classList.remove('active');
-  }
-
+  function closeModal(modal) { modal.classList.remove('active'); }
   function showMessageModal(title, message, isError = false) {
     const modal = $('#messageModal');
     $('#messageTitle').textContent = title;
@@ -1443,35 +915,25 @@
   const minutesDisplay = $('#minutesDisplay');
   const secondsDisplay = $('#secondsDisplay');
   const setsDisplay = $('#setsDisplay');
-
   function updateCustomDialDisplay() {
       minutesDisplay.textContent = customState.minutes;
       secondsDisplay.textContent = pad(customState.seconds);
       setsDisplay.textContent = customState.sets;
   }
-
   function handleDialChange(type, value) {
       if (type === 'minutes') {
           customState.minutes = Math.max(0, customState.minutes + value);
       } else if (type === 'seconds') {
           customState.seconds = customState.seconds + value;
-          if (customState.seconds >= 60) {
-              customState.seconds = 0;
-              customState.minutes++;
-          } else if (customState.seconds < 0) {
-              if (customState.minutes > 0) {
-                  customState.seconds = 45;
-                  customState.minutes--;
-              } else {
-                  customState.seconds = 0;
-              }
-          }
+          if (customState.seconds >= 60) { customState.seconds = 0; customState.minutes++; }
+          else if (customState.seconds < 0) { if (customState.minutes > 0) { customState.seconds = 45; customState.minutes--; } else { customState.seconds = 0; } }
       } else if (type === 'sets') {
           customState.sets = Math.max(1, customState.sets + value);
       }
       updateCustomDialDisplay();
   }
 
+  // Event bindings
   presetRow.addEventListener('click', (e) => {
     const btn = e.target.closest('.preset-btn');
     if (btn) selectPreset(parseInt(btn.dataset.index, 10), true);
@@ -1479,67 +941,31 @@
   startBtn.addEventListener('click', toggleStart);
   skipBtn.addEventListener('click', skip);
   backBtn.addEventListener('click', back);
-
   setRow.addEventListener('click', (e) => {
     const pill = e.target.closest('.pill');
-    if (pill) {
-      const targetSetIndex = parseInt(pill.dataset.set, 10);
-      if (targetSetIndex !== state.setIndex) {
-        jumpToSet(targetSetIndex);
-      }
-    }
+    if (pill) { const targetSetIndex = parseInt(pill.dataset.set, 10); if (targetSetIndex !== state.setIndex) jumpToSet(targetSetIndex); }
   });
-
   function handleNudge(delta, start) {
-    if (start) {
-      nudger(delta);
-      state.nudgeInterval = setInterval(() => nudger(delta), 150);
-    } else {
-      clearInterval(state.nudgeInterval);
-    }
+    if (start) { nudger(delta); state.nudgeInterval = setInterval(() => nudger(delta), 150); }
+    else { clearInterval(state.nudgeInterval); }
   }
   minusBtn.addEventListener('mousedown', () => handleNudge(-15000, true));
   plusBtn.addEventListener('mousedown', () => handleNudge(15000, true));
-  minusBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    handleNudge(-15000, true);
-  });
-  plusBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    handleNudge(15000, true);
-  });
+  minusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(-15000, true); });
+  plusBtn.addEventListener('touchstart', (e) => { e.preventDefault(); handleNudge(15000, true); });
   document.addEventListener('mouseup', () => handleNudge(0, false));
   document.addEventListener('touchend', () => handleNudge(0, false));
-
   document.addEventListener('keydown', (e) => {
     if ($('.modal.active') || e.target.tagName === 'INPUT') return;
-    if (e.code === 'Space') {
-      e.preventDefault();
-      toggleStart();
-    }
-    if (e.code === 'ArrowRight') {
-      e.preventDefault();
-      skip();
-    }
-    if (e.code === 'ArrowLeft') {
-      e.preventDefault();
-      back();
-    }
-    if (e.key === '+') {
-      e.preventDefault();
-      nudger(15000);
-    }
-    if (e.key === '-') {
-      e.preventDefault();
-      nudger(-15000);
-    }
+    if (e.code === 'Space') { e.preventDefault(); toggleStart(); }
+    if (e.code === 'ArrowRight') { e.preventDefault(); skip(); }
+    if (e.code === 'ArrowLeft') { e.preventDefault(); back(); }
+    if (e.key === '+') { e.preventDefault(); nudger(15000); }
+    if (e.key === '-') { e.preventDefault(); nudger(-15000); }
   });
 
   $('#clearLog').addEventListener('click', () => {
-    saveLog([]);
-    renderLog();
-    store.set('workoutLetterIndex', 0);
-    state.workoutLetterIndex = 0;
+    saveLog([]); renderLog(); store.set('workoutLetterIndex', 0); state.workoutLetterIndex = 0;
   });
 
   soundToggle.addEventListener('change', () => store.set('sounds', soundToggle.checked));
@@ -1552,112 +978,56 @@
   $('#manageBtn').addEventListener('click', () => openModal($('#manageModal')));
   $('#settingsBtn').addEventListener('click', () => openModal($('#settingsModal')));
   $$('.close-btn').forEach(b => b.addEventListener('click', (e) => closeModal(e.target.closest('.modal'))));
-  $$('.modal').forEach(m => m.addEventListener('click', (e) => {
-    if (e.target === m) closeModal(m);
-  }));
-
+  $$('.modal').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(m); }));
   $('#presetList').addEventListener('click', (e) => {
     const deleteBtn = e.target.closest('.delete-btn');
-    if (deleteBtn) {
-      const item = deleteBtn.closest('.modal-list-item');
-      const id = item.dataset.id;
-      deletePreset(id);
-    }
+    if (deleteBtn) { const item = deleteBtn.closest('.modal-list-item'); const id = item.dataset.id; deletePreset(id); }
   });
-
   $('#customModal').addEventListener('click', (e) => {
-      const upBtn = e.target.closest('.up-btn');
-      const downBtn = e.target.closest('.down-btn');
+      const upBtn = e.target.closest('.up-btn'); const downBtn = e.target.closest('.down-btn');
       if (upBtn || downBtn) {
           const dial = e.target.closest('.dial');
           if (dial) {
               const type = dial.querySelector('.dial-label').textContent.toLowerCase().trim();
               const value = upBtn ? 1 : -1;
-              if (type === 'minutes') {
-                  handleDialChange('minutes', value);
-              } else if (type === 'sets') {
-                  handleDialChange('sets', value);
-              } else if (type === 'seconds') {
-                  handleDialChange('seconds', value * 15);
-              }
+              if (type === 'minutes') handleDialChange('minutes', value);
+              else if (type === 'sets') handleDialChange('sets', value);
+              else if (type === 'seconds') handleDialChange('seconds', value * 15);
           }
       }
   });
-
-
-  $('#saveCustomBtn').addEventListener('click', async () => {
+  $('#saveCustomBtn').addEventListener('click', () => {
     const totalSeconds = (customState.minutes * 60) + customState.seconds;
     const setsVal = customState.sets;
-
-    if (totalSeconds < 1) {
-      showMessageModal("Invalid Time", "Total time must be at least 1 second.", true);
-      return;
-    }
-
-    const newPreset = {
-      seconds: totalSeconds,
-      sets: setsVal,
-    };
-
-    if (userId) {
-      try {
-        const presetsCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'presets');
-        const newDocRef = await addDoc(presetsCollectionRef, newPreset);
-        newPreset.id = newDocRef.id;
-      } catch (e) {
-        console.error("Error saving preset to Firestore: ", e);
-        newPreset.id = crypto.randomUUID();
-      }
-    } else {
-      newPreset.id = crypto.randomUUID();
-    }
-
-    presets.push(newPreset);
-    store.set('presets', presets);
-    renderPresets();
-    closeModal($('#customModal'));
+    if (totalSeconds < 1) { showMessageModal('Invalid Time', 'Total time must be at least 1 second.', true); return; }
+    const newPreset = { id: crypto.randomUUID(), seconds: totalSeconds, sets: setsVal };
+    presets.push(newPreset); store.set('presets', presets); renderPresets(); closeModal($('#customModal'));
   });
 
+  // Wake Lock
   let wakeLock = null;
-  async function requestWakeLock() {
-    if ('wakeLock' in navigator) {
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-      } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
-      }
-    }
-  }
+  async function requestWakeLock() { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} } }
+  function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } }
 
-  function releaseWakeLock() {
-    if (wakeLock !== null) {
-      wakeLock.release().then(() => {
-        wakeLock = null;
-      });
-    }
-  }
-
+  // Notifications
   function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default' && notificationToggle.checked) {
       Notification.requestPermission();
     }
   }
-
   function showNotification(title, options) {
     if ('Notification' in window && Notification.permission === 'granted' && notificationToggle.checked) {
       navigator.serviceWorker.ready.then(registration => {
         registration.showNotification(title, options);
-      }).catch(e => console.error('Notification error:', e));
+      }).catch(() => {});
     }
   }
 
   renderPresets();
   renderLog();
-  initializeFirebase();
-
+  loadState();
   const savedAppearance = store.get('appearance', 'auto');
-  $(`#${savedAppearance}Mode`).classList.add('active');
-
+  const modeBtn = document.getElementById(`${savedAppearance}Mode`); if (modeBtn) modeBtn.classList.add('active');
   window.addEventListener('resize', updateControls);
 </script>
 </body>
